@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>体系文件与检测方法 — ISO15189 实验室无纸化管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body class="app-layout">
+
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo"><i class="fa-solid fa-flask"></i></div>
+    <div class="title">ISO 15189<br>无纸化管理</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">主菜单</div>
+    <a href="../index.html"><i class="fa-solid fa-gauge-high"></i> 仪表盘</a>
+    <div class="nav-section">质量监控</div>
+    <a href="quality.html"><i class="fa-solid fa-chart-line"></i> TAT 质量监控</a>
+    <div class="nav-section">核心业务</div>
+    <a href="hr.html"><i class="fa-solid fa-users"></i> 人力资源与能力资质</a>
+    <a href="equipment.html"><i class="fa-solid fa-microscope"></i> 设备设施与计量溯源</a>
+    <a href="consumables.html"><i class="fa-solid fa-vial"></i> 耗材试剂与标准物质</a>
+    <a href="documents.html" class="active"><i class="fa-solid fa-file-lines"></i> 体系文件与检测方法</a>
+    <a href="environment.html"><i class="fa-solid fa-temperature-half"></i> 环境设施与洁净合规</a>
+    <a href="risk.html"><i class="fa-solid fa-shield-halved"></i> 质量溯源与风险辅助</a>
+    <div class="nav-section">系统管理</div>
+    <a href="admin.html"><i class="fa-solid fa-gear"></i> 用户及权限管理</a>
+  </nav>
+  <div class="sidebar-footer"><span id="sidebarUserName">—</span><br><span id="sidebarGroupName" style="font-size:11px;color:rgba(255,255,255,0.45);"></span></div>
+</aside>
+
+<main class="main-content">
+  <header class="topbar">
+    <div class="topbar-left"><h2 class="page-title">体系文件与检测方法</h2></div>
+    <div class="topbar-right">
+      <select id="groupSwitcher" class="group-switcher"></select>
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <span id="userDisplayName">用户</span>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> 退出</button>
+    </div>
+  </header>
+  <div class="page-content">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:16px;">文件列表</h3>
+        <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> 上传文件</button>
+      </div>
+      <div class="empty-state">
+        <i class="fa-solid fa-book-open"></i>
+        <p>体系文件与检测方法模块 — 数据表待建，功能待接入</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../js/common.js"></script>
+<script>
+  if (!checkAuth()) {}
+  renderUserInfo();
+  document.getElementById('sidebarUserName').textContent = (getUser()?.display_name || getUser()?.username || '—');
+</script>
+</body>
+</html>

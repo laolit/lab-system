@@ -1,0 +1,182 @@
+/* ========================================
+   ISO15189 实验室无纸化管理系统 — 全局样式
+   主题色：实验室蓝 #1a73e8 + 白
+   ======================================== */
+
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --primary-light: #e8f0fe;
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --sidebar-width: 240px;
+  --header-height: 56px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border: none; border-radius: var(--radius);
+  font-size: 14px; cursor: pointer; transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--bg); }
+.btn-sm { padding: 4px 12px; font-size: 13px; }
+
+/* ---------- 表单 ---------- */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: var(--text); }
+.form-control {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 14px; font-family: inherit;
+  transition: border-color 0.2s;
+}
+.form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+/* ---------- 表格 ---------- */
+.data-table {
+  width: 100%; border-collapse: collapse; background: var(--surface);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+}
+.data-table th, .data-table td {
+  padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.data-table th { background: #f9fafb; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+.data-table tr:hover td { background: #f9fafb; }
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 20px;
+}
+
+/* ---------- 提示 ---------- */
+.toast {
+  position: fixed; top: 20px; right: 20px; z-index: 9999;
+  padding: 12px 20px; border-radius: var(--radius); color: #fff; font-size: 14px;
+  animation: slideIn 0.3s ease; box-shadow: var(--shadow-lg);
+}
+.toast-success { background: var(--success); }
+.toast-error { background: var(--danger); }
+.toast-warning { background: var(--warning); }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ---------- 模态框 ---------- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal {
+  background: var(--surface); border-radius: 12px; padding: 24px;
+  width: 90%; max-width: 480px; box-shadow: var(--shadow-lg);
+}
+.modal h3 { margin-bottom: 20px; font-size: 18px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+/* ---------- 空状态 ---------- */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text-secondary);
+}
+.empty-state i { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.4; }
+.empty-state p { font-size: 15px; }
+
+/* ---------- Tab 标签页 ---------- */
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+.tab-item {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+}
+.tab-item:hover {
+  color: var(--text);
+  background: rgba(0,0,0,0.03);
+}
+.tab-item.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.tab-item i { font-size: 14px; opacity: 0.7; }
+.tab-item.active i { opacity: 1; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---------- 小组切换下拉框 ---------- */
+.group-switcher {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  max-width: 160px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: auto;
+  -webkit-appearance: auto;
+}
+.group-switcher:hover {
+  border-color: var(--primary);
+}
+.group-switcher:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+.group-switcher option {
+  background: var(--surface);
+  color: var(--text);
+  padding: 4px 8px;
+}

@@ -1,0 +1,319 @@
+/* ========================================
+   TAT 质量监控 — 深色主题样式
+   ======================================== */
+
+/* 覆盖页面背景为深色 */
+body.tat-page {
+  background: #0a0e17;
+  color: #e2e8f0;
+}
+
+body.tat-page .main-content {
+  background: #0a0e17;
+}
+
+body.tat-page .topbar {
+  background: rgba(15, 20, 40, 0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+}
+
+body.tat-page .topbar .page-title {
+  color: #e2e8f0;
+}
+
+body.tat-page .page-content {
+  background: transparent;
+  padding: 24px 28px;
+}
+
+/* ---------- 背景网格纹理 ---------- */
+body.tat-page .page-content::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.tat-page .page-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------- KPI 卡片行 ---------- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.kpi-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.kpi-card:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.14);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.kpi-card:hover::before { opacity: 1; }
+
+.kpi-card.pre  { }
+.kpi-card.pre::before  { background: linear-gradient(90deg, #6366f1, #818cf8, #6366f1); }
+.kpi-card.intra { }
+.kpi-card.intra::before { background: linear-gradient(90deg, #0d9488, #22d3bb, #0d9488); }
+.kpi-card.pass { }
+.kpi-card.pass::before  { background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb); }
+.kpi-card.total { }
+.kpi-card.total::before { background: linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed); }
+
+.kpi-card .kpi-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.kpi-card.pre  .kpi-icon { background: rgba(99,102,241,0.15);  color: #818cf8; }
+.kpi-card.intra .kpi-icon { background: rgba(13,148,136,0.15); color: #22d3bb; }
+.kpi-card.pass  .kpi-icon { background: rgba(37,99,235,0.15);  color: #60a5fa; }
+.kpi-card.total .kpi-icon { background: rgba(124,58,237,0.15); color: #a78bfa; }
+
+.kpi-card .kpi-label {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.kpi-card .kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.kpi-card.pre  .kpi-value { color: #a5b4fc; }
+.kpi-card.intra .kpi-value { color: #5eead4; }
+.kpi-card.pass  .kpi-value { color: #93c5fd; }
+.kpi-card.total .kpi-value { color: #c4b5fd; }
+
+.kpi-card .kpi-unit {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.3);
+  margin-left: 2px;
+}
+
+.kpi-card .kpi-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 4px;
+}
+
+/* ---------- 图表区域网格 ---------- */
+.chart-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.chart-row.single {
+  grid-template-columns: 1fr;
+}
+
+/* ---------- 图表卡片 ---------- */
+.chart-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.chart-card .chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-card .chart-title i {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.chart-card .chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.chart-card .chart-wrap canvas {
+  width: 100% !important;
+}
+
+/* ---------- 环形图中间文字 ---------- */
+.doughnut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+.doughnut-center .center-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: #93c5fd;
+  line-height: 1;
+}
+.doughnut-center .center-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+}
+
+/* ---------- 深色表格 ---------- */
+.dark-table-wrap {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dark-table-wrap .chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  padding: 18px 24px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dark-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.dark-table th {
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 18px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  white-space: nowrap;
+}
+
+.dark-table td {
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.75);
+}
+
+.dark-table tr:last-child td { border-bottom: none; }
+
+.dark-table tbody tr {
+  transition: background 0.15s;
+}
+
+.dark-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.dark-table .item-name {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.dark-table .item-code {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-left: 8px;
+}
+
+/* 达标状态色 */
+.badge-pass {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-pass.good { background: rgba(22,163,74,0.15); color: #4ade80; }
+.badge-pass.warn { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.badge-pass.bad  { background: rgba(220,38,38,0.15); color: #f87171; }
+
+/* TAT 数值色 */
+.tat-val.pre-color  { color: #a5b4fc; font-weight: 600; }
+.tat-val.intra-color { color: #5eead4; font-weight: 600; }
+
+/* 进度条 */
+.mini-bar {
+  display: inline-block;
+  width: 60px;
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-left: 6px;
+  overflow: hidden;
+}
+
+.mini-bar .fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.mini-bar .fill.good { background: #4ade80; }
+.mini-bar .fill.warn { background: #fbbf24; }
+.mini-bar .fill.bad  { background: #f87171; }
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  body.tat-page .page-content { padding: 16px; }
+}

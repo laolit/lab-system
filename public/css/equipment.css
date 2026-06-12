@@ -1,0 +1,434 @@
+/* ========================================
+   设备设施 — 设备台账样式
+   ======================================== */
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar .search-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.toolbar .search-group input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.toolbar .search-group input:focus {
+  border-color: var(--primary);
+}
+
+.toolbar .search-group .btn-search {
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.toolbar .search-group .btn-search:hover {
+  background: var(--primary-dark);
+}
+
+.toolbar .btn-clear {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.toolbar .btn-clear:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.toolbar .btn-add {
+  margin-left: auto;
+}
+
+/* ---------- 状态标签 ---------- */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-badge.in_use    { background: #f0fdf4; color: #16a34a; }
+.status-badge.idle      { background: #fefce8; color: #ca8a04; }
+.status-badge.repairing { background: #fff7ed; color: #ea580c; }
+.status-badge.scrapped  { background: #f3f4f6; color: #6b7280; }
+
+/* ---------- 表格操作按钮 ---------- */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  margin-right: 4px;
+}
+
+.btn-icon:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-icon.delete:hover {
+  background: #fef2f2;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---------- 详情网格（预览模式） ---------- */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+.detail-grid .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-grid .detail-item.full {
+  grid-column: 1 / -1;
+}
+
+.detail-grid .detail-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-grid .detail-value {
+  font-size: 14px;
+  color: var(--text);
+  padding: 6px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.detail-grid .detail-value.empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ---------- 模态框 wider for equipment form ---------- */
+.modal-wider {
+  max-width: 600px;
+}
+
+/* ---------- 表单两列布局 ---------- */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+/* ---------- textarea ---------- */
+.modal textarea.form-control {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* ---------- 搜索无结果 ---------- */
+.table-empty {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar .search-group {
+    max-width: none;
+  }
+
+  .toolbar .btn-add {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- 维护类型标签 ---------- */
+.mt-type-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.mt-type-badge.mt-daily   { background: #eff6ff; color: #2563eb; }
+.mt-type-badge.mt-weekly  { background: #fefce8; color: #ca8a04; }
+.mt-type-badge.mt-monthly { background: #fdf4ff; color: #a21caf; }
+
+/* ---------- 维修记录 2×2 网格布局 ---------- */
+.rp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rp-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+.rp-legend {
+  font-weight: 600;
+  color: var(--primary);
+  padding: 0 6px;
+  font-size: 13px;
+}
+
+/* 预览模式网格同样使用 */
+.rp-view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .rp-grid,
+  .rp-view-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- 仪器校准报告 — 文件列表 ---------- */
+.cf-file-list {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.cf-file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.cf-file-item:last-child {
+  border-bottom: none;
+}
+
+.cf-file-item .cf-file-icon {
+  font-size: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.cf-file-item .cf-file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cf-file-item .cf-file-name {
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.cf-file-item .cf-file-name:hover {
+  color: var(--primary);
+}
+
+.cf-file-item .cf-file-size {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.cf-file-item .cf-file-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cf-file-item .cf-btn-preview,
+.cf-file-item .cf-btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.cf-file-item .cf-btn-preview:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.cf-file-item .cf-btn-remove:hover {
+  background: #fef2f2;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* 文件预览弹出层 */
+.cf-preview-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.cf-preview-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.cf-preview-box img {
+  max-width: 85vw;
+  max-height: 80vh;
+  display: block;
+}
+
+.cf-preview-box iframe {
+  width: 85vw;
+  height: 85vh;
+  border: none;
+}
+
+.cf-preview-box .cf-preview-close {
+  position: absolute;
+  top: 8px; right: 12px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
+}
+
+.cf-preview-box .cf-preview-close:hover {
+  color: #333;
+}
+
+/* 预览模式详情网格 */
+.cf-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 20px;
+}
+
+.cf-detail-grid .cf-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cf-detail-grid .cf-detail-item.full {
+  grid-column: 1 / -1;
+}
+
+.cf-detail-grid .cf-detail-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cf-detail-grid .cf-detail-value {
+  font-size: 14px;
+  color: var(--text);
+  padding: 6px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .cf-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
