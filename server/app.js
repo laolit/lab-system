@@ -15,6 +15,7 @@ const documentsRoutes = require('./routes/documents');
 const environmentRoutes = require('./routes/environment');
 const riskRoutes = require('./routes/risk');
 const adminRoutes = require('./routes/admin');
+const monitorConfigRoutes = require('./routes/monitor-config');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.use('/api/documents', documentsRoutes);
 app.use('/api/environment', environmentRoutes);
 app.use('/api/risk', riskRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/monitor-config', monitorConfigRoutes);
 
 // ---------- 前端页面路由（SPA fallback） ----------
 app.get('/', (req, res) => {

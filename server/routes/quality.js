@@ -1,10 +1,13 @@
 const express = require('express');
+const sql = require('mssql');
 const { authMiddleware } = require('../middleware/auth');
+const { query: dbQuery } = require('../utils/db');
+const { decryptPassword } = require('../utils/crypto');
 
 const router = express.Router();
 
 // ============================================
-// 重点检验项目 TAT 配置
+// 重点检验项目 TAT 配置（mock 数据用）
 // ============================================
 const TEST_ITEMS = [
   { code: 'CBC',  name: '血常规',         pre_target: 30, intra_target: 60 },
@@ -90,6 +93,93 @@ router.get('/tat-dashboard', authMiddleware, (req, res) => {
       trend,
     },
   });
+});
+
+// ============================================
+// GET /api/quality/dashboard-data
+// 从 tat_query_configs 读取活跃配置，连接外部数据源执行SQL，返回动态仪表盘数据
+// ============================================
+router.get('/dashboard-data', authMiddleware, async (req, res) => {
+  try {
+    const groupId = req.user.group_id;
+
+    // 1. 获取所有活跃查询配置 + 关联数据源
+    const configsResult = await dbQuery(
+      `SELECT q.*, s.name AS source_name, s.server, s.port, s.database_name, s.username, s.password_enc
+       FROM tat_query_configs q
+       JOIN tat_db_sources s ON q.source_id = s.id
+       WHERE q.group_id = @p0 AND q.is_active = 1 AND s.is_active = 1
+         AND q.target_module IS NOT NULL AND q.target_module != ''
+       ORDER BY q.target_module, q.id`,
+      [groupId],
+      [sql.Int]
+    );
+
+    const configs = configsResult.recordset;
+
+    // 2. 按 target_module 分组执行查询
+    const modules = {};
+
+    for (const cfg of configs) {
+      const module = cfg.target_module;
+      if (!modules[module]) {
+        modules[module] = [];
+      }
+
+      let pool = null;
+      let data = null;
+      let error = null;
+      let columns = [];
+
+      try {
+        const password = decryptPassword(cfg.password_enc);
+        const dbConfig = {
+          user: cfg.username,
+          password,
+          server: cfg.server,
+          database: cfg.database_name,
+          port: cfg.port || 1433,
+          options: {
+            encrypt: false,
+            trustServerCertificate: true,
+          },
+          connectionTimeout: 10000,
+          requestTimeout: 30000,
+        };
+
+        pool = await sql.connect(dbConfig);
+        const result = await pool.request().query(cfg.sql_query);
+        data = (result.recordset || []).slice(0, 500); // 最多500行
+        if (result.recordset && result.recordset.columns) {
+          columns = Object.keys(result.recordset.columns);
+        }
+        await pool.close();
+        pool = null;
+      } catch (err) {
+        if (pool) {
+          try { await pool.close(); } catch (e) { /* ignore */ }
+        }
+        error = err.originalError?.message || err.message;
+        console.error(`[Quality] 查询"${cfg.name}"执行失败:`, error);
+      }
+
+      modules[module].push({
+        id: cfg.id,
+        name: cfg.name,
+        display_type: cfg.display_type,
+        query_category: cfg.query_category,
+        source_name: cfg.source_name,
+        columns,
+        data,
+        error,
+      });
+    }
+
+    res.json({ code: 200, data: { modules } });
+  } catch (err) {
+    console.error('[Quality] 加载动态仪表盘数据失败:', err);
+    res.status(500).json({ code: 500, message: '服务器内部错误' });
+  }
 });
 
 // 保留旧接口兼容

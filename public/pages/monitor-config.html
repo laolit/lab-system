@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>质量监控配置管理 — ISO15189 实验室无纸化管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/monitor-config.css">
+</head>
+<body class="app-layout">
+
+  <!-- ========== 侧边栏 ========== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo"><i class="fa-solid fa-flask"></i></div>
+      <div class="title">ISO 15189<br>无纸化管理</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a href="../index.html">
+        <i class="fa-solid fa-gauge-high"></i> 仪表盘
+      </a>
+
+      <div class="nav-section">质量监控</div>
+      <a href="quality.html">
+        <i class="fa-solid fa-chart-line"></i> TAT 质量监控
+      </a>
+
+      <div class="nav-section">核心业务</div>
+      <a href="hr.html">
+        <i class="fa-solid fa-users"></i> 人力资源与能力资质
+      </a>
+      <a href="equipment.html">
+        <i class="fa-solid fa-microscope"></i> 设备设施与计量溯源
+      </a>
+      <a href="consumables.html">
+        <i class="fa-solid fa-vial"></i> 耗材试剂与标准物质
+      </a>
+      <a href="documents.html">
+        <i class="fa-solid fa-file-lines"></i> 体系文件与检测方法
+      </a>
+      <a href="environment.html">
+        <i class="fa-solid fa-temperature-half"></i> 环境设施与洁净合规
+      </a>
+      <a href="risk.html">
+        <i class="fa-solid fa-shield-halved"></i> 质量溯源与风险辅助
+      </a>
+
+      <div class="nav-section">系统管理</div>
+      <a href="admin.html">
+        <i class="fa-solid fa-gear"></i> 用户及权限管理
+      </a>
+      <a href="monitor-config.html" class="active">
+        <i class="fa-solid fa-server"></i> 质量监控配置管理
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span id="sidebarUserName">—</span>
+      <br><span id="sidebarGroupName" style="font-size:11px;color:rgba(255,255,255,0.45);"></span>
+    </div>
+  </aside>
+
+  <!-- ========== 主内容区 ========== -->
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left"><h2 class="page-title">质量监控配置管理</h2></div>
+      <div class="topbar-right">
+        <select id="groupSwitcher" class="group-switcher"></select>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <span id="userDisplayName">用户</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> 退出</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+
+      <!-- ====== Tab 导航栏 ====== -->
+      <div class="tab-nav">
+        <button class="tab-item active" data-tab="sources">
+          <i class="fa-solid fa-database"></i> 数据库连接
+        </button>
+        <button class="tab-item" data-tab="queries">
+          <i class="fa-solid fa-code"></i> SQL查询配置
+        </button>
+      </div>
+
+      <!-- ====== 面板：数据库连接 ====== -->
+      <div class="tab-panel active" id="panel-sources">
+        <div class="card">
+          <div class="toolbar">
+            <div class="search-group">
+              <input type="text" id="srcSearchInput" placeholder="搜索连接名称、服务器地址...">
+              <button class="btn-search" onclick="loadSources(document.getElementById('srcSearchInput').value)">
+                <i class="fa-solid fa-magnifying-glass"></i> 搜索
+              </button>
+            </div>
+            <button class="btn btn-outline btn-clear btn-sm" onclick="document.getElementById('srcSearchInput').value='';loadSources();">
+              <i class="fa-solid fa-xmark"></i> 清除
+            </button>
+            <button class="btn btn-primary btn-sm btn-add" onclick="openSourceDialog(null)">
+              <i class="fa-solid fa-plus"></i> 新增连接
+            </button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>服务器</th>
+                <th>端口</th>
+                <th>数据库</th>
+                <th>用户名</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="srcTableBody">
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====== 面板：SQL查询配置 ====== -->
+      <div class="tab-panel" id="panel-queries">
+        <div class="card">
+          <div class="toolbar">
+            <select id="querySourceFilter" class="form-control" style="max-width:180px;">
+              <option value="">全部数据源</option>
+            </select>
+            <div class="search-group">
+              <input type="text" id="querySearchInput" placeholder="搜索查询名称、分类...">
+              <button class="btn-search" onclick="loadQueries(
+                document.getElementById('querySourceFilter').value,
+                document.getElementById('querySearchInput').value
+              )">
+                <i class="fa-solid fa-magnifying-glass"></i> 搜索
+              </button>
+            </div>
+            <button class="btn btn-outline btn-clear btn-sm" onclick="document.getElementById('querySearchInput').value='';document.getElementById('querySourceFilter').value='';loadQueries();">
+              <i class="fa-solid fa-xmark"></i> 清除
+            </button>
+            <button class="btn btn-primary btn-sm btn-add" onclick="openQueryDialog(null)">
+              <i class="fa-solid fa-plus"></i> 新增查询
+            </button>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>数据源</th>
+                <th>分类</th>
+                <th>查询语句</th>
+                <th>目标模块</th>
+                <th>显示类型</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="queryTableBody">
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </main>
+
+  <!-- ====== 数据源模态框 ====== -->
+  <div class="modal-overlay" id="srcModal" style="display:none;">
+    <div class="modal" style="max-width:600px;">
+      <h3 id="srcModalTitle">新增数据库连接</h3>
+      <div class="modal-body">
+        <input type="hidden" id="editSrcId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>连接名称 <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="editSrcName" class="form-control" placeholder="如: LIS数据库、HIS数据库">
+          </div>
+          <div class="form-group">
+            <label>服务器地址 <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="editSrcServer" class="form-control" placeholder="如: 10.1.10.100">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>端口 <span style="color:var(--danger);">*</span></label>
+            <input type="number" id="editSrcPort" class="form-control" value="1433" placeholder="默认: 1433">
+          </div>
+          <div class="form-group">
+            <label>数据库名称 <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="editSrcDatabase" class="form-control" placeholder="如: lab_db">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>用户名 <span style="color:var(--danger);">*</span></label>
+            <input type="text" id="editSrcUsername" class="form-control" placeholder="数据库登录用户名">
+          </div>
+          <div class="form-group">
+            <label>密码 <span style="color:var(--danger);">*</span></label>
+            <input type="password" id="editSrcPassword" class="form-control" placeholder="数据库登录密码" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>状态</label>
+            <select id="editSrcActive" class="form-control">
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="testConnection()">
+              <i class="fa-solid fa-plug"></i> 测试连接
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeSourceDialog()">取消</button>
+        <button class="btn btn-primary" onclick="saveSource()">
+          <i class="fa-solid fa-check"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SQL查询配置模态框 ====== -->
+  <div class="modal-overlay" id="queryModal" style="display:none;">
+    <div class="modal" style="max-width:700px;">
+      <h3 id="queryModalTitle">新增SQL查询配置</h3>
+      <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+        <input type="hidden" id="editQueryId">
+        <div class="form-group">
+          <label>查询名称 <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="editQueryName" class="form-control" placeholder="如: TAT实验前统计、样本通过率查询">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>数据源 <span style="color:var(--danger);">*</span></label>
+            <select id="editQuerySourceId" class="form-control">
+              <option value="">请选择数据源</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>查询分类</label>
+            <input type="text" id="editQueryCategory" class="form-control" placeholder="如: TAT监控、样本统计">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>SQL查询语句 <span style="color:var(--danger);">*</span></label>
+          <textarea id="editQuerySql" class="form-control" rows="6" placeholder="SELECT&#10;  item_name,&#10;  AVG(pre_tat_min) AS avg_pre_tat&#10;FROM tat_records&#10;WHERE record_date >= DATEADD(DAY, -30, GETDATE())&#10;GROUP BY item_name"></textarea>
+          <div class="form-hint">请输入完整的 T-SQL 查询语句。测试查询时将限制返回前 100 行。</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>目标子模块</label>
+            <select id="editQueryTargetModule" class="form-control">
+              <option value="">请选择</option>
+              <option value="kpi_summary">KPI 概览卡片</option>
+              <option value="trend_chart">30天趋势图</option>
+              <option value="pass_distribution">达标率分布图</option>
+              <option value="item_comparison">项目对比图</option>
+              <option value="detail_table">明细数据表</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>显示类型</label>
+            <select id="editQueryDisplayType" class="form-control">
+              <option value="">请选择</option>
+              <option value="number">数值</option>
+              <option value="table">表格</option>
+              <option value="line_chart">折线图</option>
+              <option value="bar_chart">柱状图</option>
+              <option value="doughnut_chart">环形图</option>
+            </select>
+          </div>
+        </div>
+        <!-- SQL编写指南面板 -->
+        <div id="sqlGuidePanel" style="display:none;">
+          <div class="sql-guide-box">
+            <div class="sql-guide-header">
+              <i class="fa-solid fa-circle-info"></i>
+              <strong id="sqlGuideTitle"></strong>
+              <span class="sql-guide-badge" id="sqlGuideDisplayType"></span>
+            </div>
+            <div class="sql-guide-section-title">SQL 查询应返回以下列：</div>
+            <table class="sql-guide-cols">
+              <thead><tr><th>列名</th><th>说明</th><th>类型</th></tr></thead>
+              <tbody id="sqlGuideColsTbody"></tbody>
+            </table>
+            <div class="sql-guide-section-title" style="margin-top:12px;">示例 SQL</div>
+            <pre id="sqlGuideExample"></pre>
+            <div class="sql-guide-note" id="sqlGuideRenderNote"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>状态</label>
+            <select id="editQueryActive" class="form-control">
+              <option value="1">启用</option>
+              <option value="0">停用</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;">
+            <button class="btn btn-outline btn-sm" onclick="testQuery()">
+              <i class="fa-solid fa-play"></i> 测试查询
+            </button>
+          </div>
+        </div>
+
+        <!-- 测试查询结果 -->
+        <div id="queryTestResult" style="display:none;">
+          <h4 style="margin:0 0 8px 0;font-size:13px;color:var(--text-secondary);">查询结果</h4>
+          <pre id="queryTestOutput"></pre>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeQueryDialog()">取消</button>
+        <button class="btn btn-primary" onclick="saveQuery()">
+          <i class="fa-solid fa-check"></i> 保存
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/common.js"></script>
+  <script src="../js/monitor-config.js"></script>
+</body>
+</html>

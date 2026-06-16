@@ -627,6 +627,89 @@ async function init() {
       console.log('[DB-Init] - th_records 表已有数据，跳过样本插入');
     }
 
+    // ============ 14. tat_db_sources — TAT 数据源配置 ============
+    console.log('[DB-Init] 正在初始化 tat_db_sources 表...');
+    await query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tat_db_sources' AND xtype='U')
+      BEGIN
+        CREATE TABLE tat_db_sources (
+            id              INT IDENTITY(1,1) PRIMARY KEY,
+            name            NVARCHAR(100) NOT NULL,
+            server          NVARCHAR(200) NOT NULL,
+            port            INT NOT NULL DEFAULT 1433,
+            database_name   NVARCHAR(100) NOT NULL,
+            username        NVARCHAR(100) NOT NULL,
+            password_enc    NVARCHAR(500) NOT NULL,
+            is_active       TINYINT DEFAULT 1,
+            group_id        INT NOT NULL,
+            created_at      DATETIME DEFAULT GETDATE(),
+            updated_at      DATETIME DEFAULT GETDATE(),
+            CONSTRAINT FK_tat_db_sources_group FOREIGN KEY (group_id) REFERENCES groups(id)
+        );
+
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='主键ID，自增',               @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='连接名称',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='name';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='服务器地址',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='server';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='端口号，默认1433',           @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='port';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='数据库名称',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='database_name';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='登录用户名',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='username';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='AES-256-CBC加密密码',        @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='password_enc';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='状态: 1=启用, 0=停用',       @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='is_active';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='所属小组ID',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='group_id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='创建时间',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='created_at';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='最后更新时间',                @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_db_sources', @level2type='COLUMN',@level2name='updated_at';
+      END
+    `);
+    console.log('[DB-Init] ✓ tat_db_sources 表已就绪');
+
+    // ============ 15. tat_query_configs — TAT SQL查询配置 ============
+    console.log('[DB-Init] 正在初始化 tat_query_configs 表...');
+    await query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tat_query_configs' AND xtype='U')
+      BEGIN
+        CREATE TABLE tat_query_configs (
+            id              INT IDENTITY(1,1) PRIMARY KEY,
+            source_id       INT NOT NULL,
+            name            NVARCHAR(100) NOT NULL,
+            sql_query       NVARCHAR(MAX) NOT NULL,
+            query_category  NVARCHAR(50),
+            is_active       TINYINT DEFAULT 1,
+            group_id        INT NOT NULL,
+            created_at      DATETIME DEFAULT GETDATE(),
+            updated_at      DATETIME DEFAULT GETDATE(),
+            CONSTRAINT FK_tat_query_src FOREIGN KEY (source_id) REFERENCES tat_db_sources(id),
+            CONSTRAINT FK_tat_query_group FOREIGN KEY (group_id) REFERENCES groups(id)
+        );
+
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='主键ID，自增',               @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='关联数据源ID',               @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='source_id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='查询名称',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='name';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='SQL查询语句',                @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='sql_query';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='查询分类标签',               @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='query_category';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='状态: 1=启用, 0=停用',       @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='is_active';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='所属小组ID',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='group_id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='创建时间',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='created_at';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='最后更新时间',                @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='tat_query_configs', @level2type='COLUMN',@level2name='updated_at';
+      END
+    `);
+    console.log('[DB-Init] ✓ tat_query_configs 表已就绪');
+
+    // --- 升级 tat_query_configs: target_module / display_type ---
+    const tcCols = await query(`SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('tat_query_configs')`);
+    const tcColNames = tcCols.recordset.map(c => c.name);
+    if (!tcColNames.includes('target_module')) {
+      await query(`ALTER TABLE tat_query_configs ADD target_module NVARCHAR(50)`);
+      console.log('[DB-Init] ✓ tat_query_configs 表已增加 target_module 字段');
+    } else {
+      console.log('[DB-Init] - tat_query_configs.target_module 字段已存在，跳过');
+    }
+    if (!tcColNames.includes('display_type')) {
+      await query(`ALTER TABLE tat_query_configs ADD display_type NVARCHAR(50)`);
+      console.log('[DB-Init] ✓ tat_query_configs 表已增加 display_type 字段');
+    } else {
+      console.log('[DB-Init] - tat_query_configs.display_type 字段已存在，跳过');
+    }
+
     // ============ 完成 ============
     const pool = await getPool();
     await pool.close();

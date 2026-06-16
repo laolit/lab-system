@@ -31,6 +31,7 @@
     <a href="risk.html"><i class="fa-solid fa-shield-halved"></i> 质量溯源与风险辅助</a>
     <div class="nav-section">系统管理</div>
     <a href="admin.html"><i class="fa-solid fa-gear"></i> 用户及权限管理</a>
+    <a href="monitor-config.html"><i class="fa-solid fa-server"></i> 质量监控配置管理</a>
   </nav>
   <div class="sidebar-footer"><span id="sidebarUserName">—</span><br><span id="sidebarGroupName" style="font-size:11px;color:rgba(255,255,255,0.45);"></span></div>
 </aside>
@@ -50,8 +51,8 @@
 
   <div class="page-content">
 
-    <!-- ====== KPI 卡片 ====== -->
-    <div class="kpi-grid">
+    <!-- ====== KPI 卡片（动态渲染） ====== -->
+    <div class="kpi-grid" id="kpiGrid">
       <div class="kpi-card pre">
         <div class="kpi-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
         <div class="kpi-label">平均实验前 TAT</div>
@@ -79,14 +80,14 @@
     </div>
 
     <!-- ====== 图表行1：折线图 + 环形图 ====== -->
-    <div class="chart-row">
-      <div class="chart-card">
+    <div class="chart-row" id="chartRow1">
+      <div class="chart-card" id="trendChartCard">
         <div class="chart-title"><i class="fa-solid fa-chart-line"></i> 近30天 TAT 趋势</div>
         <div class="chart-wrap" style="height:320px;">
           <canvas id="trendChart"></canvas>
         </div>
       </div>
-      <div class="chart-card">
+      <div class="chart-card" id="doughnutChartCard">
         <div class="chart-title"><i class="fa-solid fa-chart-pie"></i> 项目达标率分布</div>
         <div class="chart-wrap" style="height:320px;position:relative;">
           <canvas id="doughnutChart"></canvas>
@@ -99,8 +100,8 @@
     </div>
 
     <!-- ====== 图表行2：柱状图 ====== -->
-    <div class="chart-row single">
-      <div class="chart-card">
+    <div class="chart-row single" id="chartRow2">
+      <div class="chart-card" id="barChartCard">
         <div class="chart-title"><i class="fa-solid fa-chart-bar"></i> 各检验项目 TAT 对比（实验前 · 实验内）</div>
         <div class="chart-wrap" style="height:360px;">
           <canvas id="barChart"></canvas>
@@ -109,11 +110,11 @@
     </div>
 
     <!-- ====== 数据明细表 ====== -->
-    <div class="dark-table-wrap" style="margin-top:22px;">
+    <div class="dark-table-wrap" style="margin-top:22px;" id="detailTableWrap">
       <div class="chart-title"><i class="fa-solid fa-table-list"></i> 重点检验项目 TAT 明细</div>
       <div style="overflow-x:auto;padding:0 0 12px;">
         <table class="dark-table">
-          <thead>
+          <thead id="detailTableHead">
             <tr>
               <th>检验项目</th>
               <th>实验前 TAT</th>
