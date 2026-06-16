@@ -8,7 +8,6 @@
 const SQL_GUIDES = {
   kpi_summary: {
     title: 'KPI 概览卡片',
-    displayType: '推荐 display_type: number',
     columns: [
       ['avg_pre_tat',   '平均实验前 TAT（分钟）', 'DECIMAL'],
       ['avg_intra_tat', '平均实验内 TAT（分钟）', 'DECIMAL'],
@@ -27,7 +26,6 @@ WHERE record_date >= DATEADD(DAY, -30, GETDATE())`,
   },
   trend_chart: {
     title: '30天趋势图',
-    displayType: '推荐 display_type: line_chart',
     columns: [
       ['date',          '日期（X 轴标签）',  'DATE / VARCHAR'],
       ['avg_pre_tat',   '实验前 TAT（折线1）', 'DECIMAL'],
@@ -45,7 +43,6 @@ ORDER BY date`,
   },
   pass_distribution: {
     title: '达标率分布图',
-    displayType: '推荐 display_type: doughnut_chart',
     columns: [
       ['name',  '分组名称（扇形标签）', 'VARCHAR'],
       ['count', '项目数量（扇形大小）', 'INT'],
@@ -74,7 +71,6 @@ END`,
   },
   item_comparison: {
     title: '项目对比图',
-    displayType: '推荐 display_type: bar_chart',
     columns: [
       ['item_name', '项目名称（X 轴分组）', 'VARCHAR'],
       ['pre_tat',   '实验前 TAT（柱组1）',  'DECIMAL'],
@@ -92,7 +88,6 @@ ORDER BY item_name`,
   },
   detail_table: {
     title: '明细数据表',
-    displayType: '推荐 display_type: table',
     columns: [
       ['item_name',     '项目名称（第1列高亮）', 'VARCHAR'],
       ['...',           '其他任意列',            '—'],
@@ -124,7 +119,6 @@ function updateSqlGuide(targetModule) {
   }
 
   document.getElementById('sqlGuideTitle').textContent = guide.title;
-  document.getElementById('sqlGuideDisplayType').textContent = guide.displayType;
   document.getElementById('sqlGuideColsTbody').innerHTML = guide.columns.map(c =>
     `<tr><td><code>${c[0]}</code></td><td>${c[1]}</td><td style="color:var(--text-secondary);">${c[2]}</td></tr>`
   ).join('');
@@ -152,17 +146,6 @@ function targetModuleLabel(val) {
     pass_distribution: '达标率分布图',
     item_comparison: '项目对比图',
     detail_table: '明细数据表',
-  };
-  return map[val] || val || '—';
-}
-
-function displayTypeLabel(val) {
-  const map = {
-    number: '数值',
-    table: '表格',
-    line_chart: '折线图',
-    bar_chart: '柱状图',
-    doughnut_chart: '环形图',
   };
   return map[val] || val || '—';
 }
@@ -501,7 +484,6 @@ async function loadQueries(sourceIdFilter, searchTerm) {
           <td>${esc(item.query_category || '—')}</td>
           <td><span class="sql-preview" title="${escJs(item.sql_query || '')}">${sqlPreview}</span></td>
           <td>${esc(targetModuleLabel(item.target_module))}</td>
-          <td>${esc(displayTypeLabel(item.display_type))}</td>
           <td>${statusHtml}</td>
           <td>
             <span style="font-size:12px;color:#9ca3af;">${new Date(item.created_at).toLocaleString('zh-CN')}</span>
@@ -529,7 +511,6 @@ async function openQueryDialog(id) {
   document.getElementById('editQuerySql').value = '';
   document.getElementById('editQueryCategory').value = '';
   document.getElementById('editQueryTargetModule').value = '';
-  document.getElementById('editQueryDisplayType').value = '';
   document.getElementById('editQueryActive').value = '1';
   document.getElementById('queryTestResult').style.display = 'none';
   document.getElementById('queryTestOutput').textContent = '';
@@ -548,7 +529,6 @@ async function openQueryDialog(id) {
         document.getElementById('editQuerySql').value = item.sql_query || '';
         document.getElementById('editQueryCategory').value = item.query_category || '';
         document.getElementById('editQueryTargetModule').value = item.target_module || '';
-        document.getElementById('editQueryDisplayType').value = item.display_type || '';
         document.getElementById('editQueryActive').value = item.is_active ? '1' : '0';
         await loadSourceOptions(item.source_id);
       }
@@ -585,14 +565,13 @@ async function saveQuery() {
   const sql_query = document.getElementById('editQuerySql').value.trim();
   const query_category = document.getElementById('editQueryCategory').value.trim();
   const target_module = document.getElementById('editQueryTargetModule').value;
-  const display_type = document.getElementById('editQueryDisplayType').value;
   const is_active = document.getElementById('editQueryActive').value === '1';
 
   if (!source_id) { showToast('请选择数据源', 'error'); return; }
   if (!name) { showToast('请输入查询名称', 'error'); return; }
   if (!sql_query) { showToast('请输入SQL查询语句', 'error'); return; }
 
-  const payload = { source_id: parseInt(source_id, 10), name, sql_query, query_category: query_category || null, target_module: target_module || null, display_type: display_type || null, is_active };
+  const payload = { source_id: parseInt(source_id, 10), name, sql_query, query_category: query_category || null, target_module: target_module || null, is_active };
 
   try {
     let resp;

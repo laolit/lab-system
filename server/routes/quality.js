@@ -166,7 +166,6 @@ router.get('/dashboard-data', authMiddleware, async (req, res) => {
       modules[module].push({
         id: cfg.id,
         name: cfg.name,
-        display_type: cfg.display_type,
         query_category: cfg.query_category,
         source_name: cfg.source_name,
         columns,

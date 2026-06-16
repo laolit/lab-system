@@ -160,14 +160,13 @@
                 <th>分类</th>
                 <th>查询语句</th>
                 <th>目标模块</th>
-                <th>显示类型</th>
                 <th>状态</th>
                 <th>创建时间</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody id="queryTableBody">
-              <tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>
             </tbody>
           </table>
         </div>
@@ -275,17 +274,6 @@
               <option value="detail_table">明细数据表</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>显示类型</label>
-            <select id="editQueryDisplayType" class="form-control">
-              <option value="">请选择</option>
-              <option value="number">数值</option>
-              <option value="table">表格</option>
-              <option value="line_chart">折线图</option>
-              <option value="bar_chart">柱状图</option>
-              <option value="doughnut_chart">环形图</option>
-            </select>
-          </div>
         </div>
         <!-- SQL编写指南面板 -->
         <div id="sqlGuidePanel" style="display:none;">
@@ -293,7 +281,6 @@
             <div class="sql-guide-header">
               <i class="fa-solid fa-circle-info"></i>
               <strong id="sqlGuideTitle"></strong>
-              <span class="sql-guide-badge" id="sqlGuideDisplayType"></span>
             </div>
             <div class="sql-guide-section-title">SQL 查询应返回以下列：</div>
             <table class="sql-guide-cols">

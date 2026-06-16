@@ -52,86 +52,10 @@
   <div class="page-content">
 
     <!-- ====== KPI 卡片（动态渲染） ====== -->
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi-card pre">
-        <div class="kpi-icon"><i class="fa-solid fa-vial-circle-check"></i></div>
-        <div class="kpi-label">平均实验前 TAT</div>
-        <div class="kpi-value" id="kpiPreTAT">—</div>
-        <div class="kpi-sub">样本采集 → 实验室接收</div>
-      </div>
-      <div class="kpi-card intra">
-        <div class="kpi-icon"><i class="fa-solid fa-flask"></i></div>
-        <div class="kpi-label">平均实验内 TAT</div>
-        <div class="kpi-value" id="kpiIntraTAT">—</div>
-        <div class="kpi-sub">实验室接收 → 结果报告</div>
-      </div>
-      <div class="kpi-card pass">
-        <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
-        <div class="kpi-label">总达标率</div>
-        <div class="kpi-value" id="kpiPassRate">—</div>
-        <div class="kpi-sub">所有项目加权平均</div>
-      </div>
-      <div class="kpi-card total">
-        <div class="kpi-icon"><i class="fa-solid fa-database"></i></div>
-        <div class="kpi-label">总样本数</div>
-        <div class="kpi-value" id="kpiSamples">—</div>
-        <div class="kpi-sub">近30天统计</div>
-      </div>
-    </div>
+    <div class="kpi-grid" id="kpiGrid"></div>
 
-    <!-- ====== 图表行1：折线图 + 环形图 ====== -->
-    <div class="chart-row" id="chartRow1">
-      <div class="chart-card" id="trendChartCard">
-        <div class="chart-title"><i class="fa-solid fa-chart-line"></i> 近30天 TAT 趋势</div>
-        <div class="chart-wrap" style="height:320px;">
-          <canvas id="trendChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card" id="doughnutChartCard">
-        <div class="chart-title"><i class="fa-solid fa-chart-pie"></i> 项目达标率分布</div>
-        <div class="chart-wrap" style="height:320px;position:relative;">
-          <canvas id="doughnutChart"></canvas>
-          <div class="doughnut-center">
-            <div class="center-value" id="doughnutCenterVal">—</div>
-            <div class="center-label">综合达标率</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====== 图表行2：柱状图 ====== -->
-    <div class="chart-row single" id="chartRow2">
-      <div class="chart-card" id="barChartCard">
-        <div class="chart-title"><i class="fa-solid fa-chart-bar"></i> 各检验项目 TAT 对比（实验前 · 实验内）</div>
-        <div class="chart-wrap" style="height:360px;">
-          <canvas id="barChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====== 数据明细表 ====== -->
-    <div class="dark-table-wrap" style="margin-top:22px;" id="detailTableWrap">
-      <div class="chart-title"><i class="fa-solid fa-table-list"></i> 重点检验项目 TAT 明细</div>
-      <div style="overflow-x:auto;padding:0 0 12px;">
-        <table class="dark-table">
-          <thead id="detailTableHead">
-            <tr>
-              <th>检验项目</th>
-              <th>实验前 TAT</th>
-              <th>实验内 TAT</th>
-              <th>总 TAT</th>
-              <th>目标 TAT</th>
-              <th>样本数</th>
-              <th>达标率</th>
-              <th>状态</th>
-            </tr>
-          </thead>
-          <tbody id="detailTableBody">
-            <tr><td colspan="8" style="text-align:center;padding:40px;color:rgba(255,255,255,0.3);">加载中...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <!-- ====== 动态图表 & 表格区 ====== -->
+    <div id="dynamicChartsArea"></div>
 
   </div>
 </main>

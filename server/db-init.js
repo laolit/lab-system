@@ -694,7 +694,7 @@ async function init() {
     `);
     console.log('[DB-Init] ✓ tat_query_configs 表已就绪');
 
-    // --- 升级 tat_query_configs: target_module / display_type ---
+    // --- 升级 tat_query_configs: target_module ---
     const tcCols = await query(`SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('tat_query_configs')`);
     const tcColNames = tcCols.recordset.map(c => c.name);
     if (!tcColNames.includes('target_module')) {
@@ -702,12 +702,6 @@ async function init() {
       console.log('[DB-Init] ✓ tat_query_configs 表已增加 target_module 字段');
     } else {
       console.log('[DB-Init] - tat_query_configs.target_module 字段已存在，跳过');
-    }
-    if (!tcColNames.includes('display_type')) {
-      await query(`ALTER TABLE tat_query_configs ADD display_type NVARCHAR(50)`);
-      console.log('[DB-Init] ✓ tat_query_configs 表已增加 display_type 字段');
-    } else {
-      console.log('[DB-Init] - tat_query_configs.display_type 字段已存在，跳过');
     }
 
     // ============ 完成 ============

@@ -294,7 +294,7 @@ router.get('/queries', authMiddleware, async (req, res) => {
 router.post('/queries', authMiddleware, async (req, res) => {
   try {
     const groupId = req.user.group_id;
-    const { source_id, name, sql_query, query_category, target_module, display_type, is_active } = req.body;
+    const { source_id, name, sql_query, query_category, target_module, is_active } = req.body;
 
     if (!source_id) {
       return res.status(400).json({ code: 400, message: '请选择数据源' });
@@ -319,19 +319,18 @@ router.post('/queries', authMiddleware, async (req, res) => {
     const active = is_active !== undefined ? (is_active ? 1 : 0) : 1;
 
     await query(
-      `INSERT INTO tat_query_configs (source_id, name, sql_query, query_category, target_module, display_type, is_active, group_id)
-       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)`,
+      `INSERT INTO tat_query_configs (source_id, name, sql_query, query_category, target_module, is_active, group_id)
+       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)`,
       [
         parseInt(source_id, 10),
         name.trim(),
         sql_query.trim(),
         query_category ? query_category.trim() : null,
         target_module || null,
-        display_type || null,
         active,
         groupId,
       ],
-      [sql.Int, undefined, undefined, undefined, undefined, undefined, sql.Int, sql.Int]
+      [sql.Int, undefined, undefined, undefined, undefined, sql.Int, sql.Int]
     );
 
     res.json({ code: 200, message: '查询配置添加成功' });
@@ -372,7 +371,7 @@ router.put('/queries/:id', authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
-    const { source_id, name, sql_query, query_category, target_module, display_type, is_active } = req.body;
+    const { source_id, name, sql_query, query_category, target_module, is_active } = req.body;
 
     const existCheck = await query(
       'SELECT id FROM tat_query_configs WHERE id = @p0 AND group_id = @p1',
@@ -405,10 +404,10 @@ router.put('/queries/:id', authMiddleware, async (req, res) => {
     const active = is_active !== undefined ? (is_active ? 1 : 0) : 1;
 
     await query(
-      `UPDATE tat_query_configs SET source_id=@p0, name=@p1, sql_query=@p2, query_category=@p3, target_module=@p4, display_type=@p5, is_active=@p6, updated_at=GETDATE()
-       WHERE id=@p7 AND group_id=@p8`,
-      [parseInt(source_id, 10), name.trim(), sql_query.trim(), query_category ? query_category.trim() : null, target_module || null, display_type || null, active, id, groupId],
-      [sql.Int, undefined, undefined, undefined, undefined, undefined, sql.Int, sql.Int, sql.Int]
+      `UPDATE tat_query_configs SET source_id=@p0, name=@p1, sql_query=@p2, query_category=@p3, target_module=@p4, is_active=@p5, updated_at=GETDATE()
+       WHERE id=@p6 AND group_id=@p7`,
+      [parseInt(source_id, 10), name.trim(), sql_query.trim(), query_category ? query_category.trim() : null, target_module || null, active, id, groupId],
+      [sql.Int, undefined, undefined, undefined, undefined, sql.Int, sql.Int, sql.Int]
     );
 
     res.json({ code: 200, message: '查询配置更新成功' });
