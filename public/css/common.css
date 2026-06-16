@@ -180,3 +180,234 @@ a:hover { text-decoration: underline; }
   color: var(--text);
   padding: 4px 8px;
 }
+
+/* ========================================
+   共享 UI 工具类 — 所有子模块通用
+   源自 equipment.css，统一管理确保 UI 一致性
+   ======================================== */
+
+/* ---------- 工具栏 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* ---------- 搜索框组件（search-group） ---------- */
+.toolbar .search-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.toolbar .search-group input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius) 0 0 var(--radius);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.toolbar .search-group input:focus {
+  border-color: var(--primary);
+}
+
+.toolbar .search-group .btn-search {
+  padding: 8px 14px;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.toolbar .search-group .btn-search:hover {
+  background: var(--primary-dark);
+}
+
+/* ---------- 清除按钮 ---------- */
+.toolbar .btn-clear {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.toolbar .btn-clear:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ---------- 新增按钮（右对齐） ---------- */
+.toolbar .btn-add {
+  margin-left: auto;
+}
+
+/* ---------- 日期范围筛选 ---------- */
+.date-range-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-range-group .date-input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  width: 136px;
+  transition: border-color 0.2s;
+}
+
+.date-range-group .date-input:focus {
+  border-color: var(--primary);
+}
+
+.date-range-group .date-separator {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* ---------- 表格操作图标按钮 ---------- */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  margin-right: 4px;
+}
+
+.btn-icon:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-icon.delete:hover {
+  background: #fef2f2;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---------- 详情网格（预览/查看模式） ---------- */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+.detail-grid .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-grid .detail-item.full {
+  grid-column: 1 / -1;
+}
+
+.detail-grid .detail-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-grid .detail-value {
+  font-size: 14px;
+  color: var(--text);
+  padding: 6px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.detail-grid .detail-value.empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* ---------- 表单两列布局 ---------- */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+/* ---------- 模态框 wider 变体 ---------- */
+.modal-wider {
+  max-width: 600px;
+}
+
+/* ---------- 搜索无结果提示 ---------- */
+.table-empty {
+  text-align: center;
+  padding: 40px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar .search-group {
+    max-width: none;
+  }
+
+  .toolbar .btn-add {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .date-range-group {
+    flex-wrap: wrap;
+  }
+
+  .date-range-group .date-input {
+    width: 100%;
+    min-width: 120px;
+  }
+}

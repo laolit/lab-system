@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/environment.css">
 </head>
 <body class="app-layout">
 
@@ -45,25 +46,148 @@
       <button class="btn btn-outline btn-sm" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> 退出</button>
     </div>
   </header>
+
   <div class="page-content">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h3 style="font-size:16px;">环境监测记录</h3>
-        <button class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> 新增记录</button>
-      </div>
-      <div class="empty-state">
-        <i class="fa-solid fa-building-shield"></i>
-        <p>环境设施与洁净合规模块 — 数据表待建，功能待接入</p>
+
+    <!-- ====== Tab 导航栏 ====== -->
+    <div class="tab-nav">
+      <button class="tab-item active" data-tab="threcords">
+        <i class="fa-solid fa-temperature-half"></i> 温湿度记录
+      </button>
+    </div>
+
+    <!-- ====== 面板：温湿度记录 ====== -->
+    <div class="tab-panel active" id="panel-threcords">
+      <div class="card">
+        <div class="toolbar">
+          <div class="search-group">
+            <input type="text" id="thSearchInput" placeholder="搜索记录人、备注...">
+            <button class="btn-search" onclick="doTHSearch()"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
+          </div>
+          <div class="date-range-group">
+            <input type="date" id="thDateFrom" class="date-input" title="开始日期">
+            <span class="date-separator">至</span>
+            <input type="date" id="thDateTo" class="date-input" title="结束日期">
+          </div>
+          <button class="btn btn-outline btn-clear btn-sm" onclick="clearTHSearch()"><i class="fa-solid fa-xmark"></i> 清除</button>
+          <button class="btn btn-primary btn-sm btn-add" onclick="openTHDialog(null,'add')"><i class="fa-solid fa-plus"></i> 新增记录</button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>记录日期</th>
+              <th>时段</th>
+              <th>温度 (°C)</th>
+              <th>湿度 (%RH)</th>
+              <th>位置</th>
+              <th>记录人</th>
+              <th>备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="thTableBody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
   </div>
 </main>
 
+<!-- ====== 温湿度记录弹窗（新增/编辑/查看 三模式，上/下午双栏布局） ====== -->
+<div class="modal-overlay" id="thModal" style="display:none;">
+  <div class="modal" style="max-width:760px;">
+    <h3 id="thModalTitle">新增温湿度记录</h3>
+    <div class="modal-body" style="max-height:72vh;overflow-y:auto;">
+
+      <!-- 隐藏：记录 ID -->
+      <input type="hidden" id="editTHAmId">
+      <input type="hidden" id="editTHPmId">
+      <!-- 当前编辑模式的源日期（用于编辑后定位到该日期的记录） -->
+      <input type="hidden" id="editTHSourceDate">
+
+      <!-- ====== 新增/编辑 表单 ====== -->
+      <div id="thFormFields">
+        <!-- 共享：记录日期 -->
+        <div class="form-group">
+          <label>记录日期 <span style="color:var(--danger);">*</span></label>
+          <input type="date" id="editTHDate" class="form-control" style="max-width:240px;">
+        </div>
+
+        <!-- 上/下午双栏 -->
+        <div class="th-split">
+          <!-- 左：上午 -->
+          <div class="th-col">
+            <div class="th-col-header"><i class="fa-solid fa-sun"></i> 上午</div>
+            <div class="form-group">
+              <label>温度 (°C)</label>
+              <input type="number" id="editTHAmTemp" class="form-control" step="0.1" placeholder="如 22.5">
+            </div>
+            <div class="form-group">
+              <label>湿度 (%RH)</label>
+              <input type="number" id="editTHAmHumidity" class="form-control" step="0.1" placeholder="如 45.0">
+            </div>
+            <div class="form-group">
+              <label>位置</label>
+              <input type="text" id="editTHAmLocation" class="form-control" placeholder="如 生化实验室A区">
+            </div>
+            <div class="form-group">
+              <label>记录人</label>
+              <input type="text" id="editTHAmRecorder" class="form-control" placeholder="记录人姓名">
+            </div>
+            <div class="form-group">
+              <label>备注</label>
+              <textarea id="editTHAmRemarks" class="form-control" rows="2" placeholder="备注信息..."></textarea>
+            </div>
+          </div>
+
+          <!-- 右：下午 -->
+          <div class="th-col">
+            <div class="th-col-header"><i class="fa-solid fa-cloud-sun"></i> 下午</div>
+            <div class="form-group">
+              <label>温度 (°C)</label>
+              <input type="number" id="editTHPmTemp" class="form-control" step="0.1" placeholder="如 23.0">
+            </div>
+            <div class="form-group">
+              <label>湿度 (%RH)</label>
+              <input type="number" id="editTHPmHumidity" class="form-control" step="0.1" placeholder="如 48.0">
+            </div>
+            <div class="form-group">
+              <label>位置</label>
+              <input type="text" id="editTHPmLocation" class="form-control" placeholder="如 生化实验室B区">
+            </div>
+            <div class="form-group">
+              <label>记录人</label>
+              <input type="text" id="editTHPmRecorder" class="form-control" placeholder="记录人姓名">
+            </div>
+            <div class="form-group">
+              <label>备注</label>
+              <textarea id="editTHPmRemarks" class="form-control" rows="2" placeholder="备注信息..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====== 查看/只读展示 ====== -->
+      <div id="thReadOnly" style="display:none;">
+        <div id="thDetailContent"></div>
+      </div>
+
+    </div>
+
+    <div class="modal-actions" id="thActionsAddEdit">
+      <button class="btn btn-outline" onclick="closeTHDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveTHRecord()">保存</button>
+    </div>
+    <div class="modal-actions" id="thActionsView" style="display:none;">
+      <button class="btn btn-outline" onclick="closeTHDialog()">关闭</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/common.js"></script>
-<script>
-  if (!checkAuth()) {}
-  renderUserInfo();
-  document.getElementById('sidebarUserName').textContent = (getUser()?.display_name || getUser()?.username || '—');
-</script>
+<script src="../js/environment.js?v=5"></script>
 </body>
 </html>

@@ -24,13 +24,25 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'maintenance') {
-        loadMaintenanceRecords();
+        loadMaintenanceRecords(
+          document.getElementById('mtSearchInput')?.value || '',
+          document.getElementById('mtDateFrom')?.value || '',
+          document.getElementById('mtDateTo')?.value || ''
+        );
       }
       if (btn.dataset.tab === 'usage') {
-        loadUsageRecords();
+        loadUsageRecords(
+          document.getElementById('urSearchInput')?.value || '',
+          document.getElementById('urDateFrom')?.value || '',
+          document.getElementById('urDateTo')?.value || ''
+        );
       }
       if (btn.dataset.tab === 'repair') {
-        loadRepairRecords();
+        loadRepairRecords(
+          document.getElementById('rpSearchInput')?.value || '',
+          document.getElementById('rpDateFrom')?.value || '',
+          document.getElementById('rpDateTo')?.value || ''
+        );
       }
       if (btn.dataset.tab === 'calibration') {
         loadCalibrationRecords();
@@ -43,13 +55,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') loadInstruments(e.target.value);
   });
   document.getElementById('mtSearchInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') loadMaintenanceRecords(e.target.value);
+    if (e.key === 'Enter') doMaintenanceSearch();
+  });
+  document.getElementById('mtDateFrom').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doMaintenanceSearch();
+  });
+  document.getElementById('mtDateTo').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doMaintenanceSearch();
   });
   document.getElementById('urSearchInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') loadUsageRecords(e.target.value);
+    if (e.key === 'Enter') doUsageSearch();
+  });
+  document.getElementById('urDateFrom').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doUsageSearch();
+  });
+  document.getElementById('urDateTo').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doUsageSearch();
   });
   document.getElementById('rpSearchInput').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') loadRepairRecords(e.target.value);
+    if (e.key === 'Enter') doRepairSearch();
+  });
+  document.getElementById('rpDateFrom').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doRepairSearch();
+  });
+  document.getElementById('rpDateTo').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doRepairSearch();
   });
   document.getElementById('cfSearchInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') loadCalibrationRecords(e.target.value);
@@ -62,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'usageModal') closeUsageDialog();
     if (e.target.id === 'repairModal') closeRepairDialog();
     if (e.target.id === 'calibrationModal') closeCalibrationDialog();
+    if (e.target.id === 'templateConfigModal') document.getElementById('templateConfigModal').style.display = 'none';
+    if (e.target.id === 'usageTemplateConfigModal') document.getElementById('usageTemplateConfigModal').style.display = 'none';
+    if (e.target.id === 'repairTemplateConfigModal') document.getElementById('repairTemplateConfigModal').style.display = 'none';
   });
 });
 
@@ -226,6 +259,9 @@ async function openDialog(id, mode) {
     document.getElementById('editStatus').value = 'in_use';
     document.getElementById('editLocation').value = '';
     document.getElementById('editContactPerson').value = '';
+    document.getElementById('editDailyMaintenance').value = '';
+    document.getElementById('editWeeklyMaintenance').value = '';
+    document.getElementById('editMonthlyMaintenance').value = '';
     document.getElementById('editRemarks').value = '';
   }
 
@@ -245,6 +281,9 @@ function populateForm(data) {
   document.getElementById('editStatus').value = data.status || 'in_use';
   document.getElementById('editLocation').value = data.location || '';
   document.getElementById('editContactPerson').value = data.contact_person || '';
+  document.getElementById('editDailyMaintenance').value = data.daily_maintenance || '';
+  document.getElementById('editWeeklyMaintenance').value = data.weekly_maintenance || '';
+  document.getElementById('editMonthlyMaintenance').value = data.monthly_maintenance || '';
   document.getElementById('editRemarks').value = data.remarks || '';
 }
 
@@ -269,6 +308,9 @@ function renderDetail(data) {
     { label: '仪器状态', value: statusMap[data.status] || data.status },
     { label: '存放位置', value: data.location },
     { label: '负责人', value: data.contact_person },
+    { label: '日维护', value: data.daily_maintenance },
+    { label: '周维护', value: data.weekly_maintenance },
+    { label: '月维护', value: data.monthly_maintenance },
     { label: '备注', value: data.remarks, full: true },
   ];
 
@@ -316,6 +358,9 @@ async function saveInstrument() {
   const status = document.getElementById('editStatus').value;
   const location = document.getElementById('editLocation').value.trim();
   const contact_person = document.getElementById('editContactPerson').value.trim();
+  const daily_maintenance = document.getElementById('editDailyMaintenance').value.trim();
+  const weekly_maintenance = document.getElementById('editWeeklyMaintenance').value.trim();
+  const monthly_maintenance = document.getElementById('editMonthlyMaintenance').value.trim();
   const remarks = document.getElementById('editRemarks').value.trim();
 
   // 验证
@@ -323,7 +368,7 @@ async function saveInstrument() {
   if (!model) { showToast('仪器型号不能为空', 'error'); return; }
   if (!manufacturer) { showToast('仪器厂商不能为空', 'error'); return; }
 
-  const payload = { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks };
+  const payload = { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, daily_maintenance, weekly_maintenance, monthly_maintenance, remarks };
 
   try {
     let resp;
@@ -394,12 +439,20 @@ window.refreshPageData = async function () {
   // 如果当前在维护记录 Tab，也刷新维护列表
   const mtPanel = document.getElementById('panel-maintenance');
   if (mtPanel && mtPanel.classList.contains('active')) {
-    await loadMaintenanceRecords();
+    await loadMaintenanceRecords(
+      document.getElementById('mtSearchInput')?.value || '',
+      document.getElementById('mtDateFrom')?.value || '',
+      document.getElementById('mtDateTo')?.value || ''
+    );
   }
   // 如果当前在使用登记 Tab，也刷新使用登记列表
   const urPanel = document.getElementById('panel-usage');
   if (urPanel && urPanel.classList.contains('active')) {
-    await loadUsageRecords();
+    await loadUsageRecords(
+      document.getElementById('urSearchInput')?.value || '',
+      document.getElementById('urDateFrom')?.value || '',
+      document.getElementById('urDateTo')?.value || ''
+    );
   }
   // 如果当前在维修记录 Tab，也刷新维修列表
   const rpPanel = document.getElementById('panel-repair');
@@ -422,16 +475,25 @@ function escJs(str) {
 // 日常维护与保养记录 — CRUD
 // ============================================
 
-async function loadMaintenanceRecords(searchTerm) {
+async function loadMaintenanceRecords(searchTerm, dateFrom, dateTo) {
   const tbody = document.getElementById('maintenanceTableBody');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>';
 
   try {
-    let url = '/equipment/maintenance';
+    const params = new URLSearchParams();
     if (searchTerm && searchTerm.trim()) {
-      url += '?search=' + encodeURIComponent(searchTerm.trim());
+      params.set('search', searchTerm.trim());
     }
+    if (dateFrom) {
+      params.set('date_from', dateFrom);
+    }
+    if (dateTo) {
+      params.set('date_to', dateTo);
+    }
+    let url = '/equipment/maintenance';
+    const qs = params.toString();
+    if (qs) url += '?' + qs;
 
     const resp = await http.get(url);
     if (!resp || resp.code !== 200) {
@@ -477,20 +539,53 @@ async function loadMaintenanceRecords(searchTerm) {
   }
 }
 
+let maintenanceInstrumentCache = []; // 缓存仪器数据供维护内容自动带入
+
 async function loadInstrumentOptions() {
   try {
     const resp = await http.get('/equipment/instruments');
     const selectEl = document.getElementById('editMtInstrumentId');
     if (!selectEl) return;
     if (resp && resp.code === 200 && resp.data.length > 0) {
+      maintenanceInstrumentCache = resp.data;
       selectEl.innerHTML = '<option value="">请选择仪器</option>' +
         resp.data.map(inst => `<option value="${inst.id}">${esc(inst.name)} (${esc(inst.model)})</option>`).join('');
     } else {
+      maintenanceInstrumentCache = [];
       selectEl.innerHTML = '<option value="">无可用仪器</option>';
     }
   } catch (err) {
     console.error('加载仪器列表失败:', err);
   }
+}
+
+// 根据选中的仪器和保养类型自动带入维护内容
+function autoFillMaintenanceContent() {
+  const instId = document.getElementById('editMtInstrumentId').value;
+  const mtType = document.getElementById('editMtType').value;
+  const contentEl = document.getElementById('editMtContent');
+  if (!contentEl) return;
+
+  if (!instId || !mtType) {
+    contentEl.value = '';
+    return;
+  }
+
+  const inst = maintenanceInstrumentCache.find(i => i.id === parseInt(instId, 10));
+  if (!inst) {
+    contentEl.value = '';
+    return;
+  }
+
+  let content = '';
+  if (mtType === '日保养') {
+    content = inst.daily_maintenance || '';
+  } else if (mtType === '周保养') {
+    content = inst.weekly_maintenance || '';
+  } else if (mtType === '月保养') {
+    content = inst.monthly_maintenance || '';
+  }
+  contentEl.value = content;
 }
 
 async function openMaintenanceDialog(id, mode) {
@@ -546,7 +641,10 @@ async function openMaintenanceDialog(id, mode) {
       document.getElementById('editMtDate').value = resp.data.maintenance_date ? resp.data.maintenance_date.slice(0, 10) : '';
       document.getElementById('editMtType').value = resp.data.maintenance_type;
       document.getElementById('editMtPerformedBy').value = resp.data.performed_by || '';
+      document.getElementById('editMtContent').value = resp.data.maintenance_content || '';
       document.getElementById('editMtRemarks').value = resp.data.remarks || '';
+      // 编辑模式下加载仪器列表后，同样可触发自动带入
+      autoFillMaintenanceContent();
     } catch (err) {
       console.error('加载详情失败:', err);
       showToast('加载维护记录详情失败', 'error');
@@ -567,6 +665,7 @@ async function openMaintenanceDialog(id, mode) {
     document.getElementById('editMtDate').value = '';
     document.getElementById('editMtType').value = '';
     document.getElementById('editMtPerformedBy').value = '';
+    document.getElementById('editMtContent').value = '';
     document.getElementById('editMtRemarks').value = '';
   }
 
@@ -586,6 +685,7 @@ function renderMaintenanceDetail(data) {
     { label: '保养日期', value: data.maintenance_date ? new Date(data.maintenance_date).toLocaleDateString('zh-CN') : null },
     { label: '保养类型', value: typeMap[data.maintenance_type] || data.maintenance_type },
     { label: '执行人', value: data.performed_by },
+    { label: '维护内容', value: data.maintenance_content, full: true },
     { label: '备注', value: data.remarks, full: true },
   ];
 
@@ -617,6 +717,7 @@ async function saveMaintenanceRecord() {
   const maintenance_date = document.getElementById('editMtDate').value;
   const maintenance_type = document.getElementById('editMtType').value;
   const performed_by = document.getElementById('editMtPerformedBy').value.trim();
+  const maintenance_content = document.getElementById('editMtContent').value.trim();
   const remarks = document.getElementById('editMtRemarks').value.trim();
 
   // 验证
@@ -625,7 +726,7 @@ async function saveMaintenanceRecord() {
   if (!maintenance_type) { showToast('请选择保养类型', 'error'); return; }
   if (!performed_by) { showToast('执行人不能为空', 'error'); return; }
 
-  const payload = { instrument_id: parseInt(instrument_id, 10), maintenance_date, maintenance_type, performed_by, remarks };
+  const payload = { instrument_id: parseInt(instrument_id, 10), maintenance_date, maintenance_type, performed_by, maintenance_content, remarks };
 
   try {
     let resp;
@@ -638,7 +739,11 @@ async function saveMaintenanceRecord() {
     if (resp && resp.code === 200) {
       showToast(id ? '维护记录更新成功' : '维护记录添加成功');
       closeMaintenanceDialog();
-      loadMaintenanceRecords(document.getElementById('mtSearchInput').value);
+      loadMaintenanceRecords(
+        document.getElementById('mtSearchInput').value,
+        document.getElementById('mtDateFrom').value,
+        document.getElementById('mtDateTo').value
+      );
     } else {
       showToast(resp?.message || '保存失败', 'error');
     }
@@ -655,7 +760,11 @@ function deleteMaintenanceRecord(id, desc) {
       if (resp && resp.code === 200) {
         showToast('维护记录已删除');
         overlay.remove();
-        loadMaintenanceRecords(document.getElementById('mtSearchInput').value);
+        loadMaintenanceRecords(
+          document.getElementById('mtSearchInput').value,
+          document.getElementById('mtDateFrom').value,
+          document.getElementById('mtDateTo').value
+        );
       } else {
         showToast(resp?.message || '删除失败', 'error');
       }
@@ -668,12 +777,354 @@ function deleteMaintenanceRecord(id, desc) {
 
 function doMaintenanceSearch() {
   const term = document.getElementById('mtSearchInput').value;
-  loadMaintenanceRecords(term);
+  const dateFrom = document.getElementById('mtDateFrom').value;
+  const dateTo = document.getElementById('mtDateTo').value;
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    showToast('开始日期不能晚于结束日期', 'error');
+    return;
+  }
+  loadMaintenanceRecords(term, dateFrom, dateTo);
 }
 
 function clearMaintenanceSearch() {
   document.getElementById('mtSearchInput').value = '';
+  document.getElementById('mtDateFrom').value = '';
+  document.getElementById('mtDateTo').value = '';
   loadMaintenanceRecords();
+}
+
+// ============================================
+// 打印模板配置
+// ============================================
+
+const TEMPLATE_STORAGE_KEY = 'maintenance_print_template_v4';
+
+function getDefaultTemplate() {
+  return {
+    title: '仪器设备保养登记表',
+    orgName: '中国医学科学院血液病医院精准医学诊断中心',
+    orgSubtitle: '（天津市静海区团泊大道 28 号）',
+    orientation: 'portrait',
+    fontSize: 12,
+    fontFamily: '楷体, KaiTi, 楷体_GB2312, STKaiti, serif',
+    columns: [
+      { key: 'row_num',            label: '序号',     visible: true,  width: '5%' },
+      { key: 'maintenance_date',   label: '保养日期', visible: true,  width: '10%' },
+      { key: 'instrument_name',    label: '仪器名称', visible: true,  width: '14%' },
+      { key: 'instrument_model',   label: '仪器型号', visible: true,  width: '10%' },
+      { key: 'maintenance_type',   label: '保养类型', visible: true,  width: '8%' },
+      { key: 'performed_by',       label: '执行人',   visible: true,  width: '8%' },
+      { key: 'maintenance_content',label: '维护内容', visible: true,  width: '22%' },
+      { key: 'remarks',            label: '备注',     visible: true,  width: '23%' },
+    ],
+    headerText: '',
+    footerText: '检验人签名: ________    审核人签名: ________    日期: ________',
+    docInfo: '',
+    bgOpacity: 0.06,
+  };
+}
+
+function loadTemplateConfig() {
+  try {
+    const stored = localStorage.getItem(TEMPLATE_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // 合并默认值以兼容未来新增字段
+      return Object.assign({}, getDefaultTemplate(), parsed);
+    }
+  } catch (e) { /* ignore */ }
+  return getDefaultTemplate();
+}
+
+function saveTemplateConfigToStorage(config) {
+  localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(config));
+}
+
+function openTemplateConfig() {
+  const tpl = loadTemplateConfig();
+  const modal = document.getElementById('templateConfigModal');
+  document.getElementById('tplOrgName').value = tpl.orgName || '';
+  document.getElementById('tplOrgSubtitle').value = tpl.orgSubtitle || '';
+  document.getElementById('tplTitle').value = tpl.title || '';
+  document.getElementById('tplDocInfo').value = tpl.docInfo || '';
+  document.getElementById('tplOrientation').value = tpl.orientation || 'portrait';
+  document.getElementById('tplFontSize').value = String(tpl.fontSize || 12);
+  if (document.getElementById('tplFontFamily')) {
+    document.getElementById('tplFontFamily').value = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+  }
+  if (document.getElementById('tplBgOpacity')) {
+    const opacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+    // 找到最接近的选项值
+    const sel = document.getElementById('tplBgOpacity');
+    const vals = [0, 0.03, 0.06, 0.10, 0.15, 0.20];
+    let closest = vals[0], minDiff = Infinity;
+    for (const v of vals) {
+      const diff = Math.abs(v - opacity);
+      if (diff < minDiff) { minDiff = diff; closest = v; }
+    }
+    sel.value = String(closest);
+  }
+  document.getElementById('tplHeader').value = tpl.headerText || '';
+  document.getElementById('tplFooter').value = tpl.footerText || '';
+
+  // 渲染列配置
+  const colsList = document.getElementById('tplColumnsList');
+  colsList.innerHTML = tpl.columns.map((col, idx) => `
+    <div class="tpl-col-row">
+      <label class="tpl-col-check">
+        <input type="checkbox" data-col-idx="${idx}" ${col.visible ? 'checked' : ''}>
+        <span>${esc(col.label)}</span>
+      </label>
+      <input type="text" class="tpl-col-label-input" data-col-idx="${idx}" value="${esc(col.label)}" placeholder="列标题">
+    </div>
+  `).join('');
+
+  modal.style.display = 'flex';
+}
+
+function saveTemplateConfig() {
+  const tpl = loadTemplateConfig();
+  tpl.orgName = document.getElementById('tplOrgName').value.trim();
+  tpl.orgSubtitle = document.getElementById('tplOrgSubtitle').value.trim();
+  tpl.title = document.getElementById('tplTitle').value.trim() || '仪器设备保养登记表';
+  tpl.docInfo = document.getElementById('tplDocInfo').value.trim();
+  tpl.orientation = document.getElementById('tplOrientation').value;
+  tpl.fontSize = parseInt(document.getElementById('tplFontSize').value, 10) || 12;
+  if (document.getElementById('tplFontFamily')) {
+    tpl.fontFamily = document.getElementById('tplFontFamily').value;
+  }
+  if (document.getElementById('tplBgOpacity')) {
+    tpl.bgOpacity = parseFloat(document.getElementById('tplBgOpacity').value) || 0;
+  }
+  tpl.headerText = document.getElementById('tplHeader').value.trim();
+  tpl.footerText = document.getElementById('tplFooter').value.trim();
+
+  // 校验：至少保留 1 列可见
+  let visibleCount = 0;
+  document.querySelectorAll('#tplColumnsList .tpl-col-row').forEach((row, idx) => {
+    if (tpl.columns[idx]) {
+      const cb = row.querySelector('input[type="checkbox"]');
+      const labelInput = row.querySelector('.tpl-col-label-input');
+      tpl.columns[idx].visible = cb.checked;
+      tpl.columns[idx].label = labelInput.value.trim() || tpl.columns[idx].label;
+      if (cb.checked) visibleCount++;
+    }
+  });
+
+  if (visibleCount === 0) {
+    showToast('请至少选择一列显示', 'error');
+    return;
+  }
+
+  saveTemplateConfigToStorage(tpl);
+  document.getElementById('templateConfigModal').style.display = 'none';
+  showToast('打印模板已保存');
+}
+
+function resetTemplateToDefault() {
+  const tpl = getDefaultTemplate();
+  saveTemplateConfigToStorage(tpl);
+  openTemplateConfig();
+  showToast('模板已恢复为默认设置');
+}
+
+// ============================================
+// 打印维护记录
+// ============================================
+
+async function printMaintenanceRecords() {
+  const term = document.getElementById('mtSearchInput').value;
+  const dateFrom = document.getElementById('mtDateFrom').value;
+  const dateTo = document.getElementById('mtDateTo').value;
+
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    showToast('开始日期不能晚于结束日期', 'error');
+    return;
+  }
+
+  // 重新请求当前筛选条件下的完整数据
+  const params = new URLSearchParams();
+  if (term) params.set('search', term.trim());
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  let url = '/equipment/maintenance';
+  const qs = params.toString();
+  if (qs) url += '?' + qs;
+
+  try {
+    const resp = await http.get(url);
+    if (!resp || resp.code !== 200 || !resp.data || resp.data.length === 0) {
+      showToast('没有可打印的数据', 'error');
+      return;
+    }
+    buildPrintWindow(resp.data, dateFrom, dateTo);
+  } catch (err) {
+    console.error('获取打印数据失败:', err);
+    showToast('获取打印数据失败', 'error');
+  }
+}
+
+function buildPrintWindow(records, dateFrom, dateTo) {
+  const tpl = loadTemplateConfig();
+  const visibleCols = tpl.columns.filter(c => c.visible);
+  const user = getUser();
+  const group = getGroup();
+
+  // 格式化日期范围
+  let dateRangeStr = '';
+  if (dateFrom && dateTo) {
+    dateRangeStr = `${dateFrom} 至 ${dateTo}`;
+  } else if (dateFrom) {
+    dateRangeStr = `${dateFrom} 起`;
+  } else if (dateTo) {
+    dateRangeStr = `截至 ${dateTo}`;
+  } else {
+    dateRangeStr = '全部日期';
+  }
+
+  const now = new Date().toLocaleString('zh-CN');
+  const orientationStyle = tpl.orientation === 'landscape'
+    ? '@page { size: A4 landscape; margin: 15mm; }'
+    : '@page { size: A4 portrait; margin: 15mm; }';
+
+  // 背景水印 — SVG pattern 平铺倾斜（保持图片大小，减少数量到 1/3）
+  const bgOpacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+  const bgSvg = (bgOpacity > 0)
+    ? `<svg width="100%" height="100%" style="position:fixed;top:0;left:0;z-index:-1;pointer-events:none;" aria-hidden="true">
+      <defs>
+        <pattern id="watermark" width="540" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <image href="/images/logo.png" x="90" y="22" width="360" height="45" preserveAspectRatio="xMidYMid meet"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#watermark)" opacity="${bgOpacity}"/>
+    </svg>`
+    : '';
+  const bgStyle = '';
+
+  // 字体
+  const fontFamily = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+
+  // 表头
+  const headerCells = visibleCols.map(col =>
+    `<th style="width:${col.width || 'auto'}">${esc(col.label)}</th>`
+  ).join('');
+
+  // 表格内容
+  const typeMap = { '日保养': '日保养', '周保养': '周保养', '月保养': '月保养' };
+  const bodyRows = records.map((item, idx) => {
+    const cells = visibleCols.map(col => {
+      let val = '';
+      switch (col.key) {
+        case 'row_num':           val = idx + 1; break;
+        case 'instrument_name':   val = item.instrument_name || ''; break;
+        case 'instrument_model':  val = item.instrument_model || ''; break;
+        case 'maintenance_date':  val = item.maintenance_date ? new Date(item.maintenance_date).toLocaleDateString('zh-CN') : ''; break;
+        case 'maintenance_type':  val = typeMap[item.maintenance_type] || item.maintenance_type || ''; break;
+        case 'performed_by':      val = item.performed_by || ''; break;
+        case 'maintenance_content': val = item.maintenance_content || ''; break;
+        case 'remarks':           val = item.remarks || ''; break;
+        default: val = '';
+      }
+      return `<td>${esc(String(val))}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    ${orientationStyle}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: ${fontFamily};
+      font-size: ${tpl.fontSize}px;
+      color: #1f2937;
+      padding: 24px 28px;
+      position: relative;
+      z-index: 0;
+    }
+    ${bgStyle}
+    .print-org { text-align: center; margin-bottom: 2px; }
+    .print-org .org-name { font-size: ${tpl.fontSize + 6}px; font-weight: 600; letter-spacing: 0.15em; font-family: ${fontFamily}; }
+    .print-org .org-subtitle { font-size: ${tpl.fontSize - 1}px; color: #4b5563; margin-top: 2px; }
+    .print-header { text-align: center; margin-bottom: 16px; margin-top: 12px; border-top: 2px solid #1f2937; border-bottom: 2px solid #1f2937; padding: 8px 0; }
+    .print-header h2 { font-size: ${tpl.fontSize + 6}px; letter-spacing: 0.5em; font-weight: 700; }
+    .print-header .meta { font-size: ${tpl.fontSize - 1}px; color: #6b7280; margin-top: 4px; }
+    .print-header .header-text { margin-top: 4px; font-size: ${tpl.fontSize - 1}px; color: #374151; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    th, td { border: 1px solid #374151; padding: 6px 8px; text-align: center; }
+    th { background-color: #e5e7eb; font-weight: 600; }
+    td { text-align: left; }
+    td:first-child, td:nth-child(2), td:nth-child(5) { text-align: center; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    .print-footer { margin-top: 20px; font-size: ${tpl.fontSize - 1}px; }
+    .print-footer .footer-text { margin-top: 10px; white-space: pre-line; }
+    .print-footer .meta-info { color: #9ca3af; margin-top: 6px; text-align: right; }
+    @media print {
+      body { padding: 0; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+      thead { display: table-header-group; }
+    }
+  </style>
+</head>
+<body>
+  ${bgSvg}
+  <div class="print-org">
+    <div class="org-name">${esc(tpl.orgName || '')}</div>
+    ${tpl.orgSubtitle ? `<div class="org-subtitle">${esc(tpl.orgSubtitle)}</div>` : ''}
+  </div>
+  <div class="print-header">
+    <h2>${esc(tpl.title)}</h2>
+    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
+  </div>
+  <table>
+    <thead><tr>${headerCells}</tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+  <div class="print-footer">
+    ${tpl.footerText ? `<div class="footer-text">${esc(tpl.footerText)}</div>` : ''}
+    ${tpl.docInfo ? `<div class="doc-info" style="margin-top:6px;color:#6b7280;">${esc(tpl.docInfo)}</div>` : ''}
+    <div class="meta-info">共 ${records.length} 条</div>
+  </div>
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>`;
+
+  // 使用隐藏 iframe 打印，避免 "about:blank" 出现在打印预览头部
+  removeWatermarkIframe();
+  const iframe = document.createElement('iframe');
+  iframe.id = '__print_iframe__';
+  iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:#fff;';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  // 打印完成后移除 iframe
+  iframe.contentWindow.onafterprint = function () {
+    removeWatermarkIframe();
+  };
+  // 兜底：用户取消打印也移除
+  setTimeout(function () {
+    if (document.getElementById('__print_iframe__')) {
+      removeWatermarkIframe();
+    }
+  }, 60000);
+}
+
+function removeWatermarkIframe() {
+  const el = document.getElementById('__print_iframe__');
+  if (el) el.remove();
 }
 
 // ============================================
@@ -682,16 +1133,25 @@ function clearMaintenanceSearch() {
 
 let usageInstrumentCache = []; // 缓存仪器列表供型号联动
 
-async function loadUsageRecords(searchTerm) {
+async function loadUsageRecords(searchTerm, dateFrom, dateTo) {
   const tbody = document.getElementById('usageTableBody');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>';
 
   try {
-    let url = '/equipment/usage';
+    const params = new URLSearchParams();
     if (searchTerm && searchTerm.trim()) {
-      url += '?search=' + encodeURIComponent(searchTerm.trim());
+      params.set('search', searchTerm.trim());
     }
+    if (dateFrom) {
+      params.set('date_from', dateFrom);
+    }
+    if (dateTo) {
+      params.set('date_to', dateTo);
+    }
+    let url = '/equipment/usage';
+    const qs = params.toString();
+    if (qs) url += '?' + qs;
 
     const resp = await http.get(url);
     if (!resp || resp.code !== 200) {
@@ -701,7 +1161,7 @@ async function loadUsageRecords(searchTerm) {
 
     const data = resp.data || [];
     if (data.length === 0) {
-      const msg = searchTerm ? '未找到匹配的使用登记记录' : '暂无使用登记记录，点击「新增记录」添加';
+      const msg = (searchTerm || dateFrom || dateTo) ? '未找到匹配的使用登记记录' : '暂无使用登记记录，点击「新增记录」添加';
       tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:#9ca3af;">${msg}</td></tr>`;
       return;
     }
@@ -948,7 +1408,9 @@ async function saveUsageRecord() {
     if (resp && resp.code === 200) {
       showToast(id ? '使用登记记录更新成功' : '使用登记记录添加成功');
       closeUsageDialog();
-      loadUsageRecords(document.getElementById('urSearchInput').value);
+      const urDateFrom = document.getElementById('urDateFrom')?.value || '';
+      const urDateTo = document.getElementById('urDateTo')?.value || '';
+      loadUsageRecords(document.getElementById('urSearchInput').value, urDateFrom, urDateTo);
     } else {
       showToast(resp?.message || '保存失败', 'error');
     }
@@ -965,7 +1427,9 @@ function deleteUsageRecord(id, desc) {
       if (resp && resp.code === 200) {
         showToast('使用登记记录已删除');
         overlay.remove();
-        loadUsageRecords(document.getElementById('urSearchInput').value);
+        const urDateFrom = document.getElementById('urDateFrom')?.value || '';
+        const urDateTo = document.getElementById('urDateTo')?.value || '';
+        loadUsageRecords(document.getElementById('urSearchInput').value, urDateFrom, urDateTo);
       } else {
         showToast(resp?.message || '删除失败', 'error');
       }
@@ -978,12 +1442,348 @@ function deleteUsageRecord(id, desc) {
 
 function doUsageSearch() {
   const term = document.getElementById('urSearchInput').value;
-  loadUsageRecords(term);
+  const dateFrom = document.getElementById('urDateFrom')?.value || '';
+  const dateTo = document.getElementById('urDateTo')?.value || '';
+
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    showToast('开始日期不能晚于结束日期', 'error');
+    return;
+  }
+
+  loadUsageRecords(term, dateFrom, dateTo);
 }
 
 function clearUsageSearch() {
   document.getElementById('urSearchInput').value = '';
+  if (document.getElementById('urDateFrom')) document.getElementById('urDateFrom').value = '';
+  if (document.getElementById('urDateTo')) document.getElementById('urDateTo').value = '';
   loadUsageRecords();
+}
+
+// ============================================
+// 使用登记记录 — 打印模板配置
+// ============================================
+
+const USAGE_TEMPLATE_STORAGE_KEY = 'usage_print_template_v1';
+
+function getUsageDefaultTemplate() {
+  return {
+    title: '仪器设备使用登记表',
+    orgName: '中国医学科学院血液病医院精准医学诊断中心',
+    orgSubtitle: '（天津市静海区团泊大道 28 号）',
+    orientation: 'portrait',
+    fontSize: 12,
+    fontFamily: '楷体, KaiTi, 楷体_GB2312, STKaiti, serif',
+    columns: [
+      { key: 'row_num',          label: '序号',         visible: true,  width: '5%' },
+      { key: 'usage_date',       label: '使用日期',     visible: true,  width: '11%' },
+      { key: 'instrument_name',  label: '仪器名称',     visible: true,  width: '15%' },
+      { key: 'instrument_model', label: '仪器型号',     visible: true,  width: '11%' },
+      { key: 'sample_type',      label: '标本类型',     visible: true,  width: '10%' },
+      { key: 'sample_count',     label: '标本数量',     visible: true,  width: '8%' },
+      { key: 'operator',         label: '操作人',       visible: true,  width: '8%' },
+      { key: 'remarks',          label: '备注',         visible: true,  width: '32%' },
+    ],
+    headerText: '',
+    footerText: '操作人签名: ________    审核人签名: ________    日期: ________',
+    docInfo: '',
+    bgOpacity: 0.06,
+  };
+}
+
+function loadUsageTemplateConfig() {
+  try {
+    const stored = localStorage.getItem(USAGE_TEMPLATE_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // 合并默认值以兼容未来新增字段
+      return Object.assign({}, getUsageDefaultTemplate(), parsed);
+    }
+  } catch (e) { /* ignore */ }
+  return getUsageDefaultTemplate();
+}
+
+function saveUsageTemplateConfigToStorage(config) {
+  localStorage.setItem(USAGE_TEMPLATE_STORAGE_KEY, JSON.stringify(config));
+}
+
+function openUsageTemplateConfig() {
+  const tpl = loadUsageTemplateConfig();
+  const modal = document.getElementById('usageTemplateConfigModal');
+  document.getElementById('urTplOrgName').value = tpl.orgName || '';
+  document.getElementById('urTplOrgSubtitle').value = tpl.orgSubtitle || '';
+  document.getElementById('urTplTitle').value = tpl.title || '';
+  document.getElementById('urTplDocInfo').value = tpl.docInfo || '';
+  document.getElementById('urTplOrientation').value = tpl.orientation || 'portrait';
+  document.getElementById('urTplFontSize').value = String(tpl.fontSize || 12);
+  if (document.getElementById('urTplFontFamily')) {
+    document.getElementById('urTplFontFamily').value = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+  }
+  if (document.getElementById('urTplBgOpacity')) {
+    const opacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+    // 找到最接近的选项值
+    const sel = document.getElementById('urTplBgOpacity');
+    const vals = [0, 0.03, 0.06, 0.10, 0.15, 0.20];
+    let closest = vals[0], minDiff = Infinity;
+    for (const v of vals) {
+      const diff = Math.abs(v - opacity);
+      if (diff < minDiff) { minDiff = diff; closest = v; }
+    }
+    sel.value = String(closest);
+  }
+  document.getElementById('urTplHeader').value = tpl.headerText || '';
+  document.getElementById('urTplFooter').value = tpl.footerText || '';
+
+  // 渲染列配置
+  const colsList = document.getElementById('urTplColumnsList');
+  colsList.innerHTML = tpl.columns.map((col, idx) => `
+    <div class="tpl-col-row">
+      <label class="tpl-col-check">
+        <input type="checkbox" data-col-idx="${idx}" ${col.visible ? 'checked' : ''}>
+        <span>${esc(col.label)}</span>
+      </label>
+      <input type="text" class="tpl-col-label-input" data-col-idx="${idx}" value="${esc(col.label)}" placeholder="列标题">
+    </div>
+  `).join('');
+
+  modal.style.display = 'flex';
+}
+
+function saveUsageTemplateConfig() {
+  const tpl = loadUsageTemplateConfig();
+  tpl.orgName = document.getElementById('urTplOrgName').value.trim();
+  tpl.orgSubtitle = document.getElementById('urTplOrgSubtitle').value.trim();
+  tpl.title = document.getElementById('urTplTitle').value.trim() || '仪器设备使用登记表';
+  tpl.docInfo = document.getElementById('urTplDocInfo').value.trim();
+  tpl.orientation = document.getElementById('urTplOrientation').value;
+  tpl.fontSize = parseInt(document.getElementById('urTplFontSize').value, 10) || 12;
+  if (document.getElementById('urTplFontFamily')) {
+    tpl.fontFamily = document.getElementById('urTplFontFamily').value;
+  }
+  if (document.getElementById('urTplBgOpacity')) {
+    tpl.bgOpacity = parseFloat(document.getElementById('urTplBgOpacity').value) || 0;
+  }
+  tpl.headerText = document.getElementById('urTplHeader').value.trim();
+  tpl.footerText = document.getElementById('urTplFooter').value.trim();
+
+  // 校验：至少保留 1 列可见
+  let visibleCount = 0;
+  document.querySelectorAll('#urTplColumnsList .tpl-col-row').forEach((row, idx) => {
+    if (tpl.columns[idx]) {
+      const cb = row.querySelector('input[type="checkbox"]');
+      const labelInput = row.querySelector('.tpl-col-label-input');
+      tpl.columns[idx].visible = cb.checked;
+      tpl.columns[idx].label = labelInput.value.trim() || tpl.columns[idx].label;
+      if (cb.checked) visibleCount++;
+    }
+  });
+
+  if (visibleCount === 0) {
+    showToast('请至少选择一列显示', 'error');
+    return;
+  }
+
+  saveUsageTemplateConfigToStorage(tpl);
+  document.getElementById('usageTemplateConfigModal').style.display = 'none';
+  showToast('打印模板已保存');
+}
+
+function resetUsageTemplateToDefault() {
+  const tpl = getUsageDefaultTemplate();
+  saveUsageTemplateConfigToStorage(tpl);
+  openUsageTemplateConfig();
+  showToast('模板已恢复为默认设置');
+}
+
+// ============================================
+// 打印使用登记记录
+// ============================================
+
+async function printUsageRecords() {
+  const term = document.getElementById('urSearchInput').value;
+  const dateFrom = document.getElementById('urDateFrom').value;
+  const dateTo = document.getElementById('urDateTo').value;
+
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    showToast('开始日期不能晚于结束日期', 'error');
+    return;
+  }
+
+  // 重新请求当前筛选条件下的完整数据
+  const params = new URLSearchParams();
+  if (term) params.set('search', term.trim());
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  let url = '/equipment/usage';
+  const qs = params.toString();
+  if (qs) url += '?' + qs;
+
+  try {
+    const resp = await http.get(url);
+    if (!resp || resp.code !== 200 || !resp.data || resp.data.length === 0) {
+      showToast('没有可打印的数据', 'error');
+      return;
+    }
+    buildUsagePrintWindow(resp.data, dateFrom, dateTo);
+  } catch (err) {
+    console.error('获取打印数据失败:', err);
+    showToast('获取打印数据失败', 'error');
+  }
+}
+
+function buildUsagePrintWindow(records, dateFrom, dateTo) {
+  const tpl = loadUsageTemplateConfig();
+  const visibleCols = tpl.columns.filter(c => c.visible);
+  const user = getUser();
+  const group = getGroup();
+
+  // 格式化日期范围
+  let dateRangeStr = '';
+  if (dateFrom && dateTo) {
+    dateRangeStr = `${dateFrom} 至 ${dateTo}`;
+  } else if (dateFrom) {
+    dateRangeStr = `${dateFrom} 起`;
+  } else if (dateTo) {
+    dateRangeStr = `截至 ${dateTo}`;
+  } else {
+    dateRangeStr = '全部日期';
+  }
+
+  const now = new Date().toLocaleString('zh-CN');
+  const orientationStyle = tpl.orientation === 'landscape'
+    ? '@page { size: A4 landscape; margin: 15mm; }'
+    : '@page { size: A4 portrait; margin: 15mm; }';
+
+  // 背景水印 — SVG pattern 平铺倾斜
+  const bgOpacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+  const bgSvg = (bgOpacity > 0)
+    ? `<svg width="100%" height="100%" style="position:fixed;top:0;left:0;z-index:-1;pointer-events:none;" aria-hidden="true">
+      <defs>
+        <pattern id="watermark" width="540" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <image href="/images/logo.png" x="90" y="22" width="360" height="45" preserveAspectRatio="xMidYMid meet"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#watermark)" opacity="${bgOpacity}"/>
+    </svg>`
+    : '';
+
+  // 字体
+  const fontFamily = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+
+  // 表头
+  const headerCells = visibleCols.map(col =>
+    `<th style="width:${col.width || 'auto'}">${esc(col.label)}</th>`
+  ).join('');
+
+  // 表格内容
+  const bodyRows = records.map((item, idx) => {
+    const cells = visibleCols.map(col => {
+      let val = '';
+      switch (col.key) {
+        case 'row_num':          val = idx + 1; break;
+        case 'usage_date':       val = item.usage_date ? new Date(item.usage_date).toLocaleDateString('zh-CN') : ''; break;
+        case 'instrument_name':  val = item.instrument_name || ''; break;
+        case 'instrument_model': val = item.instrument_model || ''; break;
+        case 'sample_type':      val = item.sample_type || ''; break;
+        case 'sample_count':     val = item.sample_count != null ? item.sample_count : ''; break;
+        case 'operator':         val = item.operator || ''; break;
+        case 'remarks':          val = item.remarks || ''; break;
+        default: val = '';
+      }
+      return `<td>${esc(String(val))}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    ${orientationStyle}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: ${fontFamily};
+      font-size: ${tpl.fontSize}px;
+      color: #1f2937;
+      padding: 24px 28px;
+      position: relative;
+      z-index: 0;
+    }
+    .print-org { text-align: center; margin-bottom: 2px; }
+    .print-org .org-name { font-size: ${tpl.fontSize + 6}px; font-weight: 600; letter-spacing: 0.15em; font-family: ${fontFamily}; }
+    .print-org .org-subtitle { font-size: ${tpl.fontSize - 1}px; color: #4b5563; margin-top: 2px; }
+    .print-header { text-align: center; margin-bottom: 16px; margin-top: 12px; border-top: 2px solid #1f2937; border-bottom: 2px solid #1f2937; padding: 8px 0; }
+    .print-header h2 { font-size: ${tpl.fontSize + 6}px; letter-spacing: 0.5em; font-weight: 700; }
+    .print-header .meta { font-size: ${tpl.fontSize - 1}px; color: #6b7280; margin-top: 4px; }
+    .print-header .header-text { margin-top: 4px; font-size: ${tpl.fontSize - 1}px; color: #374151; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    th, td { border: 1px solid #374151; padding: 6px 8px; text-align: center; }
+    th { background-color: #e5e7eb; font-weight: 600; }
+    td { text-align: left; }
+    td:first-child, td:nth-child(2), td:nth-child(6) { text-align: center; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    .print-footer { margin-top: 20px; font-size: ${tpl.fontSize - 1}px; }
+    .print-footer .footer-text { margin-top: 10px; white-space: pre-line; }
+    .print-footer .meta-info { color: #9ca3af; margin-top: 6px; text-align: right; }
+    @media print {
+      body { padding: 0; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+      thead { display: table-header-group; }
+    }
+  </style>
+</head>
+<body>
+  ${bgSvg}
+  <div class="print-org">
+    <div class="org-name">${esc(tpl.orgName || '')}</div>
+    ${tpl.orgSubtitle ? `<div class="org-subtitle">${esc(tpl.orgSubtitle)}</div>` : ''}
+  </div>
+  <div class="print-header">
+    <h2>${esc(tpl.title)}</h2>
+    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
+  </div>
+  <table>
+    <thead><tr>${headerCells}</tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+  <div class="print-footer">
+    ${tpl.footerText ? `<div class="footer-text">${esc(tpl.footerText)}</div>` : ''}
+    ${tpl.docInfo ? `<div class="doc-info" style="margin-top:6px;color:#6b7280;">${esc(tpl.docInfo)}</div>` : ''}
+    <div class="meta-info">共 ${records.length} 条</div>
+  </div>
+  <script>
+    window.onload = function() { window.print(); };
+  <\/script>
+</body>
+</html>`;
+
+  // 使用隐藏 iframe 打印，避免 "about:blank" 出现在打印预览头部
+  removeWatermarkIframe();
+  const iframe = document.createElement('iframe');
+  iframe.id = '__print_iframe__';
+  iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:#fff;';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  // 打印完成后移除 iframe
+  iframe.contentWindow.onafterprint = function () {
+    removeWatermarkIframe();
+  };
+  // 兜底：用户取消打印也移除
+  setTimeout(function () {
+    if (document.getElementById('__print_iframe__')) {
+      removeWatermarkIframe();
+    }
+  }, 60000);
 }
 
 // ============================================
@@ -992,16 +1792,25 @@ function clearUsageSearch() {
 
 let repairInstrumentCache = [];
 
-async function loadRepairRecords(searchTerm) {
+async function loadRepairRecords(searchTerm, dateFrom, dateTo) {
   const tbody = document.getElementById('repairTableBody');
   if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#9ca3af;">加载中...</td></tr>';
 
   try {
-    let url = '/equipment/repair';
+    const params = new URLSearchParams();
     if (searchTerm && searchTerm.trim()) {
-      url += '?search=' + encodeURIComponent(searchTerm.trim());
+      params.set('search', searchTerm.trim());
     }
+    if (dateFrom) {
+      params.set('date_from', dateFrom);
+    }
+    if (dateTo) {
+      params.set('date_to', dateTo);
+    }
+    let url = '/equipment/repair';
+    const qs = params.toString();
+    if (qs) url += '?' + qs;
 
     const resp = await http.get(url);
     if (!resp || resp.code !== 200) {
@@ -1011,7 +1820,7 @@ async function loadRepairRecords(searchTerm) {
 
     const data = resp.data || [];
     if (data.length === 0) {
-      const msg = searchTerm ? '未找到匹配的维修记录' : '暂无维修记录，点击「新增记录」添加';
+      const msg = (searchTerm || dateFrom || dateTo) ? '未找到匹配的维修记录' : '暂无维修记录，点击「新增记录」添加';
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:#9ca3af;">${msg}</td></tr>`;
       return;
     }
@@ -1305,7 +2114,7 @@ async function saveRepairRecord() {
     if (resp && resp.code === 200) {
       showToast(id ? '维修记录更新成功' : '维修记录添加成功');
       closeRepairDialog();
-      loadRepairRecords(document.getElementById('rpSearchInput').value);
+      doRepairSearch();
     } else {
       showToast(resp?.message || '保存失败', 'error');
     }
@@ -1322,7 +2131,7 @@ function deleteRepairRecord(id, desc) {
       if (resp && resp.code === 200) {
         showToast('维修记录已删除');
         overlay.remove();
-        loadRepairRecords(document.getElementById('rpSearchInput').value);
+        doRepairSearch();
       } else {
         showToast(resp?.message || '删除失败', 'error');
       }
@@ -1335,12 +2144,346 @@ function deleteRepairRecord(id, desc) {
 
 function doRepairSearch() {
   const term = document.getElementById('rpSearchInput').value;
-  loadRepairRecords(term);
+  const dateFrom = document.getElementById('rpDateFrom').value;
+  const dateTo = document.getElementById('rpDateTo').value;
+  loadRepairRecords(term, dateFrom, dateTo);
 }
 
 function clearRepairSearch() {
   document.getElementById('rpSearchInput').value = '';
+  document.getElementById('rpDateFrom').value = '';
+  document.getElementById('rpDateTo').value = '';
   loadRepairRecords();
+}
+
+// ============================================
+// 维修记录 — 打印模板配置
+// ============================================
+
+const REPAIR_TEMPLATE_STORAGE_KEY = 'repair_print_template_v1';
+
+function getRepairDefaultTemplate() {
+  return {
+    title: '仪器设备维修记录表',
+    orgName: '中国医学科学院血液病医院精准医学诊断中心',
+    orgSubtitle: '（天津市静海区团泊大道 28 号）',
+    orientation: 'portrait',
+    fontSize: 12,
+    fontFamily: '楷体, KaiTi, 楷体_GB2312, STKaiti, serif',
+    columns: [
+      { key: 'row_num',                     label: '序号',         visible: true,  width: '5%' },
+      { key: 'instrument_name',             label: '仪器名称',     visible: true,  width: '10%' },
+      { key: 'instrument_model',            label: '仪器型号',     visible: true,  width: '8%' },
+      { key: 'discovery_time',              label: '发现时间',     visible: true,  width: '11%' },
+      { key: 'fault_description',           label: '故障描述',     visible: true,  width: '15%' },
+      { key: 'handler',                     label: '处理人',       visible: true,  width: '7%' },
+      { key: 'handling_time',               label: '处理时间',     visible: true,  width: '11%' },
+      { key: 'need_performance_verification',label: '是否需性能验证', visible: true,  width: '8%' },
+      { key: 'verification_date',           label: '验证日期',     visible: true,  width: '9%' },
+      { key: 'need_trace_specimens',        label: '是否追溯标本', visible: true,  width: '8%' },
+      { key: 'trace_date',                  label: '追溯日期',     visible: true,  width: '8%' },
+    ],
+    headerText: '',
+    footerText: '处理人签名: ________    审核人签名: ________    日期: ________',
+    docInfo: '',
+    bgOpacity: 0.06,
+  };
+}
+
+function loadRepairTemplateConfig() {
+  try {
+    const stored = localStorage.getItem(REPAIR_TEMPLATE_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return Object.assign({}, getRepairDefaultTemplate(), parsed);
+    }
+  } catch (e) { /* ignore */ }
+  return getRepairDefaultTemplate();
+}
+
+function saveRepairTemplateConfigToStorage(config) {
+  localStorage.setItem(REPAIR_TEMPLATE_STORAGE_KEY, JSON.stringify(config));
+}
+
+function openRepairTemplateConfig() {
+  const tpl = loadRepairTemplateConfig();
+  const modal = document.getElementById('repairTemplateConfigModal');
+  document.getElementById('rpTplOrgName').value = tpl.orgName || '';
+  document.getElementById('rpTplOrgSubtitle').value = tpl.orgSubtitle || '';
+  document.getElementById('rpTplTitle').value = tpl.title || '';
+  document.getElementById('rpTplDocInfo').value = tpl.docInfo || '';
+  document.getElementById('rpTplOrientation').value = tpl.orientation || 'portrait';
+  document.getElementById('rpTplFontSize').value = String(tpl.fontSize || 12);
+  if (document.getElementById('rpTplFontFamily')) {
+    document.getElementById('rpTplFontFamily').value = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+  }
+  if (document.getElementById('rpTplBgOpacity')) {
+    const opacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+    const sel = document.getElementById('rpTplBgOpacity');
+    const vals = [0, 0.03, 0.06, 0.10, 0.15, 0.20];
+    let closest = vals[0], minDiff = Infinity;
+    for (const v of vals) {
+      const diff = Math.abs(v - opacity);
+      if (diff < minDiff) { minDiff = diff; closest = v; }
+    }
+    sel.value = String(closest);
+  }
+  document.getElementById('rpTplHeader').value = tpl.headerText || '';
+  document.getElementById('rpTplFooter').value = tpl.footerText || '';
+
+  // 渲染列配置
+  const colsList = document.getElementById('rpTplColumnsList');
+  colsList.innerHTML = tpl.columns.map((col, idx) => `
+    <div class="tpl-col-row">
+      <label class="tpl-col-check">
+        <input type="checkbox" data-col-idx="${idx}" ${col.visible ? 'checked' : ''}>
+        <span>${esc(col.label)}</span>
+      </label>
+      <input type="text" class="tpl-col-label-input" data-col-idx="${idx}" value="${esc(col.label)}" placeholder="列标题">
+    </div>
+  `).join('');
+
+  modal.style.display = 'flex';
+}
+
+function saveRepairTemplateConfig() {
+  const tpl = loadRepairTemplateConfig();
+  tpl.orgName = document.getElementById('rpTplOrgName').value.trim();
+  tpl.orgSubtitle = document.getElementById('rpTplOrgSubtitle').value.trim();
+  tpl.title = document.getElementById('rpTplTitle').value.trim() || '仪器设备维修记录表';
+  tpl.docInfo = document.getElementById('rpTplDocInfo').value.trim();
+  tpl.orientation = document.getElementById('rpTplOrientation').value;
+  tpl.fontSize = parseInt(document.getElementById('rpTplFontSize').value, 10) || 12;
+  if (document.getElementById('rpTplFontFamily')) {
+    tpl.fontFamily = document.getElementById('rpTplFontFamily').value;
+  }
+  if (document.getElementById('rpTplBgOpacity')) {
+    tpl.bgOpacity = parseFloat(document.getElementById('rpTplBgOpacity').value) || 0;
+  }
+  tpl.headerText = document.getElementById('rpTplHeader').value.trim();
+  tpl.footerText = document.getElementById('rpTplFooter').value.trim();
+
+  // 校验：至少保留 1 列可见
+  let visibleCount = 0;
+  document.querySelectorAll('#rpTplColumnsList .tpl-col-row').forEach((row, idx) => {
+    if (tpl.columns[idx]) {
+      const cb = row.querySelector('input[type="checkbox"]');
+      const labelInput = row.querySelector('.tpl-col-label-input');
+      tpl.columns[idx].visible = cb.checked;
+      tpl.columns[idx].label = labelInput.value.trim() || tpl.columns[idx].label;
+      if (cb.checked) visibleCount++;
+    }
+  });
+
+  if (visibleCount === 0) {
+    showToast('请至少选择一列显示', 'error');
+    return;
+  }
+
+  saveRepairTemplateConfigToStorage(tpl);
+  document.getElementById('repairTemplateConfigModal').style.display = 'none';
+  showToast('打印模板已保存');
+}
+
+function resetRepairTemplateToDefault() {
+  const tpl = getRepairDefaultTemplate();
+  saveRepairTemplateConfigToStorage(tpl);
+  openRepairTemplateConfig();
+  showToast('模板已恢复为默认设置');
+}
+
+// ============================================
+// 维修记录 — 打印
+// ============================================
+
+async function printRepairRecords() {
+  const term = document.getElementById('rpSearchInput').value;
+  const dateFrom = document.getElementById('rpDateFrom').value;
+  const dateTo = document.getElementById('rpDateTo').value;
+
+  if (dateFrom && dateTo && dateFrom > dateTo) {
+    showToast('开始日期不能晚于结束日期', 'error');
+    return;
+  }
+
+  // 重新请求当前筛选条件下的完整数据
+  const params = new URLSearchParams();
+  if (term) params.set('search', term.trim());
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  let url = '/equipment/repair';
+  const qs = params.toString();
+  if (qs) url += '?' + qs;
+
+  try {
+    const resp = await http.get(url);
+    if (!resp || resp.code !== 200 || !resp.data || resp.data.length === 0) {
+      showToast('没有可打印的数据', 'error');
+      return;
+    }
+    buildRepairPrintWindow(resp.data, dateFrom, dateTo);
+  } catch (err) {
+    console.error('获取打印数据失败:', err);
+    showToast('获取打印数据失败', 'error');
+  }
+}
+
+function buildRepairPrintWindow(records, dateFrom, dateTo) {
+  const tpl = loadRepairTemplateConfig();
+  const visibleCols = tpl.columns.filter(c => c.visible);
+  const user = getUser();
+  const group = getGroup();
+
+  // 格式化日期范围
+  let dateRangeStr = '';
+  if (dateFrom && dateTo) {
+    dateRangeStr = `${dateFrom} 至 ${dateTo}`;
+  } else if (dateFrom) {
+    dateRangeStr = `${dateFrom} 起`;
+  } else if (dateTo) {
+    dateRangeStr = `截至 ${dateTo}`;
+  } else {
+    dateRangeStr = '全部日期';
+  }
+
+  const now = new Date().toLocaleString('zh-CN');
+  const orientationStyle = tpl.orientation === 'landscape'
+    ? '@page { size: A4 landscape; margin: 15mm; }'
+    : '@page { size: A4 portrait; margin: 15mm; }';
+
+  // 背景水印 — SVG pattern 平铺倾斜
+  const bgOpacity = typeof tpl.bgOpacity === 'number' ? tpl.bgOpacity : 0.06;
+  const bgSvg = (bgOpacity > 0)
+    ? `<svg width="100%" height="100%" style="position:fixed;top:0;left:0;z-index:-1;pointer-events:none;" aria-hidden="true">
+      <defs>
+        <pattern id="watermark" width="540" height="90" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)">
+          <image href="/images/logo.png" x="90" y="22" width="360" height="45" preserveAspectRatio="xMidYMid meet"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#watermark)" opacity="${bgOpacity}"/>
+    </svg>`
+    : '';
+
+  // 字体
+  const fontFamily = tpl.fontFamily || '楷体, KaiTi, 楷体_GB2312, STKaiti, serif';
+
+  // 表头
+  const headerCells = visibleCols.map(col =>
+    `<th style="width:${col.width || 'auto'}">${esc(col.label)}</th>`
+  ).join('');
+
+  // 表格内容
+  const bodyRows = records.map((item, idx) => {
+    const cells = visibleCols.map(col => {
+      let val = '';
+      switch (col.key) {
+        case 'row_num':                     val = idx + 1; break;
+        case 'instrument_name':             val = item.instrument_name || ''; break;
+        case 'instrument_model':            val = item.instrument_model || ''; break;
+        case 'discovery_time':              val = item.discovery_time ? new Date(item.discovery_time).toLocaleString('zh-CN') : ''; break;
+        case 'fault_description':           val = item.fault_description || ''; break;
+        case 'handler':                     val = item.handler || ''; break;
+        case 'handling_time':               val = item.handling_time ? new Date(item.handling_time).toLocaleString('zh-CN') : ''; break;
+        case 'need_performance_verification': val = item.need_performance_verification || ''; break;
+        case 'verification_date':           val = item.verification_date ? new Date(item.verification_date).toLocaleDateString('zh-CN') : ''; break;
+        case 'need_trace_specimens':        val = item.need_trace_specimens || ''; break;
+        case 'trace_date':                  val = item.trace_date ? new Date(item.trace_date).toLocaleDateString('zh-CN') : ''; break;
+        default: val = '';
+      }
+      return `<td>${esc(String(val))}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    ${orientationStyle}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: ${fontFamily};
+      font-size: ${tpl.fontSize}px;
+      color: #1f2937;
+      padding: 24px 28px;
+      position: relative;
+      z-index: 0;
+    }
+    .print-org { text-align: center; margin-bottom: 2px; }
+    .print-org .org-name { font-size: ${tpl.fontSize + 6}px; font-weight: 600; letter-spacing: 0.15em; font-family: ${fontFamily}; }
+    .print-org .org-subtitle { font-size: ${tpl.fontSize - 1}px; color: #4b5563; margin-top: 2px; }
+    .print-header { text-align: center; margin-bottom: 16px; margin-top: 12px; border-top: 2px solid #1f2937; border-bottom: 2px solid #1f2937; padding: 8px 0; }
+    .print-header h2 { font-size: ${tpl.fontSize + 6}px; letter-spacing: 0.5em; font-weight: 700; }
+    .print-header .meta { font-size: ${tpl.fontSize - 1}px; color: #6b7280; margin-top: 4px; }
+    .print-header .header-text { margin-top: 4px; font-size: ${tpl.fontSize - 1}px; color: #374151; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    th, td { border: 1px solid #374151; padding: 6px 8px; text-align: center; }
+    th { background-color: #e5e7eb; font-weight: 600; }
+    td { text-align: left; }
+    td:first-child, td:nth-child(4), td:nth-child(6) { text-align: center; }
+    tr:nth-child(even) td { background-color: #fafafa; }
+    .print-footer { margin-top: 20px; font-size: ${tpl.fontSize - 1}px; }
+    .print-footer .footer-text { margin-top: 10px; white-space: pre-line; }
+    .print-footer .meta-info { color: #9ca3af; margin-top: 6px; text-align: right; }
+    @media print {
+      body { padding: 0; }
+      table { page-break-inside: auto; }
+      tr { page-break-inside: avoid; }
+      thead { display: table-header-group; }
+    }
+  </style>
+</head>
+<body>
+  ${bgSvg}
+  <div class="print-org">
+    <div class="org-name">${esc(tpl.orgName || '')}</div>
+    ${tpl.orgSubtitle ? `<div class="org-subtitle">${esc(tpl.orgSubtitle)}</div>` : ''}
+  </div>
+  <div class="print-header">
+    <h2>${esc(tpl.title)}</h2>
+    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
+  </div>
+  <table>
+    <thead><tr>${headerCells}</tr></thead>
+    <tbody>${bodyRows}</tbody>
+  </table>
+  <div class="print-footer">
+    ${tpl.footerText ? `<div class="footer-text">${esc(tpl.footerText)}</div>` : ''}
+    ${tpl.docInfo ? `<div class="doc-info" style="margin-top:6px;color:#6b7280;">${esc(tpl.docInfo)}</div>` : ''}
+    <div class="meta-info">共 ${records.length} 条</div>
+  </div>
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>`;
+
+  // 使用隐藏 iframe 打印
+  removeWatermarkIframe();
+  const iframe = document.createElement('iframe');
+  iframe.id = '__print_iframe__';
+  iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:#fff;';
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
+
+  // 打印完成后移除 iframe
+  iframe.contentWindow.onafterprint = function () {
+    removeWatermarkIframe();
+  };
+  // 兜底：用户取消打印也移除
+  setTimeout(function () {
+    if (document.getElementById('__print_iframe__')) {
+      removeWatermarkIframe();
+    }
+  }, 60000);
 }
 
 // ============================================

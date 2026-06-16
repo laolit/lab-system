@@ -175,6 +175,35 @@ async function init() {
     `);
     console.log('[DB-Init] ✓ instruments 表已就绪');
 
+    // ---------- instruments 表字段补增/升级：日维护/周维护/月维护（长文本 NVARCHAR(MAX)） ----------
+    const instDailyCheck = await query(`SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('instruments') AND name = 'daily_maintenance'`);
+    if (instDailyCheck.recordset.length === 0) {
+      await query(`ALTER TABLE instruments ADD daily_maintenance NVARCHAR(MAX)`);
+      await query(`EXEC sys.sp_addextendedproperty @name='MS_Description', @value='日维护内容（长文本）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='instruments', @level2type='COLUMN',@level2name='daily_maintenance'`);
+      console.log('[DB-Init] ✓ instruments 表已增加 daily_maintenance 字段 (NVARCHAR(MAX))');
+    } else {
+      await query(`ALTER TABLE instruments ALTER COLUMN daily_maintenance NVARCHAR(MAX)`);
+      console.log('[DB-Init] ✓ instruments 表 daily_maintenance 字段已升级为 NVARCHAR(MAX)');
+    }
+    const instWeeklyCheck = await query(`SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('instruments') AND name = 'weekly_maintenance'`);
+    if (instWeeklyCheck.recordset.length === 0) {
+      await query(`ALTER TABLE instruments ADD weekly_maintenance NVARCHAR(MAX)`);
+      await query(`EXEC sys.sp_addextendedproperty @name='MS_Description', @value='周维护内容（长文本）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='instruments', @level2type='COLUMN',@level2name='weekly_maintenance'`);
+      console.log('[DB-Init] ✓ instruments 表已增加 weekly_maintenance 字段 (NVARCHAR(MAX))');
+    } else {
+      await query(`ALTER TABLE instruments ALTER COLUMN weekly_maintenance NVARCHAR(MAX)`);
+      console.log('[DB-Init] ✓ instruments 表 weekly_maintenance 字段已升级为 NVARCHAR(MAX)');
+    }
+    const instMonthlyCheck = await query(`SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('instruments') AND name = 'monthly_maintenance'`);
+    if (instMonthlyCheck.recordset.length === 0) {
+      await query(`ALTER TABLE instruments ADD monthly_maintenance NVARCHAR(MAX)`);
+      await query(`EXEC sys.sp_addextendedproperty @name='MS_Description', @value='月维护内容（长文本）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='instruments', @level2type='COLUMN',@level2name='monthly_maintenance'`);
+      console.log('[DB-Init] ✓ instruments 表已增加 monthly_maintenance 字段 (NVARCHAR(MAX))');
+    } else {
+      await query(`ALTER TABLE instruments ALTER COLUMN monthly_maintenance NVARCHAR(MAX)`);
+      console.log('[DB-Init] ✓ instruments 表 monthly_maintenance 字段已升级为 NVARCHAR(MAX)');
+    }
+
     // 插入样本仪器数据
     const instCount = await query("SELECT COUNT(*) AS cnt FROM instruments");
     if (instCount.recordset[0].cnt === 0) {
@@ -211,6 +240,7 @@ async function init() {
             performed_by        NVARCHAR(50) NOT NULL,
             group_id            INT NOT NULL,
             remarks             NVARCHAR(500),
+            maintenance_content NVARCHAR(MAX),
             created_at          DATETIME DEFAULT GETDATE(),
             updated_at          DATETIME DEFAULT GETDATE(),
             CONSTRAINT FK_maintenance_instrument FOREIGN KEY (instrument_id) REFERENCES instruments(id),
@@ -224,11 +254,20 @@ async function init() {
         EXEC sys.sp_addextendedproperty @name='MS_Description', @value='执行保养的人员',              @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='performed_by';
         EXEC sys.sp_addextendedproperty @name='MS_Description', @value='所属小组ID，外键关联groups表', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='group_id';
         EXEC sys.sp_addextendedproperty @name='MS_Description', @value='备注',                       @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='remarks';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='维护内容（从仪器台账自动带入）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='maintenance_content';
         EXEC sys.sp_addextendedproperty @name='MS_Description', @value='创建时间',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='created_at';
         EXEC sys.sp_addextendedproperty @name='MS_Description', @value='最后更新时间',                @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='updated_at';
       END
     `);
     console.log('[DB-Init] ✓ maintenance_records 表已就绪');
+
+    // ---------- maintenance_records 字段补增：维护内容 ----------
+    const mtContentCheck = await query(`SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('maintenance_records') AND name = 'maintenance_content'`);
+    if (mtContentCheck.recordset.length === 0) {
+      await query(`ALTER TABLE maintenance_records ADD maintenance_content NVARCHAR(MAX)`);
+      await query(`EXEC sys.sp_addextendedproperty @name='MS_Description', @value='维护内容（从仪器台账自动带入）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='maintenance_records', @level2type='COLUMN',@level2name='maintenance_content'`);
+      console.log('[DB-Init] ✓ maintenance_records 表已增加 maintenance_content 字段');
+    }
 
     // 插入样本维护记录
     const mtCount = await query("SELECT COUNT(*) AS cnt FROM maintenance_records");
@@ -457,6 +496,135 @@ async function init() {
       }
     } else {
       console.log('[DB-Init] - calibration_reports 表已有数据，跳过样本插入');
+    }
+
+    // ============ 14. personnel 人员信息表 ============
+    const personnelExists = await query("SELECT COUNT(*) AS cnt FROM sysobjects WHERE name='personnel' AND xtype='U'");
+    if (personnelExists.recordset[0].cnt === 0) {
+      await query(`
+        BEGIN
+          CREATE TABLE personnel (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            name NVARCHAR(50) NOT NULL,
+            age INT,
+            gender NVARCHAR(10),
+            phone NVARCHAR(20),
+            id_card NVARCHAR(18),
+            hire_date DATE,
+            title NVARCHAR(50),
+            group_id INT NOT NULL,
+            photo NVARCHAR(MAX),
+            created_at DATETIME DEFAULT GETDATE(),
+            updated_at DATETIME DEFAULT GETDATE(),
+            CONSTRAINT FK_personnel_group FOREIGN KEY (group_id) REFERENCES groups(id)
+          );
+
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'主键ID/自增', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'id';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'姓名', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'name';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'年龄', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'age';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'性别', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'gender';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'手机号', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'phone';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'身份证号', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'id_card';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'入职日期', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'hire_date';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'职称', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'title';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'所属小组ID', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'group_id';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'证件照(base64)', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'photo';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'创建时间', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'created_at';
+          EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'最后更新时间', @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'personnel', @level2type=N'COLUMN',@level2name=N'updated_at';
+        END
+      `);
+      console.log('[DB-Init] ✓ personnel 表已就绪');
+    } else {
+      console.log('[DB-Init] - personnel 表已存在，跳过创建');
+    }
+
+    // --- 样本数据: personnel ---
+    const personnelCount = await query("SELECT COUNT(*) AS cnt FROM personnel");
+    if (personnelCount.recordset[0].cnt === 0) {
+      const groups = await query("SELECT id, name FROM groups");
+      const samplePersonnel = [
+        { name: '张明', age: 35, gender: '男', phone: '13800138001', id_card: '310101198001010001', hire_date: '2018-03-15', title: '主管技师' },
+        { name: '李红', age: 28, gender: '女', phone: '13800138002', id_card: '310101199201010002', hire_date: '2020-07-01', title: '检验技师' },
+        { name: '王磊', age: 42, gender: '男', phone: '13800138003', id_card: '310101197801010003', hire_date: '2015-01-10', title: '副主任技师' },
+      ];
+      for (let i = 0; i < groups.recordset.length && i < samplePersonnel.length; i++) {
+        const g = groups.recordset[i];
+        const sp = samplePersonnel[i];
+        await query(
+          `INSERT INTO personnel (name, age, gender, phone, id_card, hire_date, title, group_id)
+           VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7)`,
+          [sp.name, sp.age, sp.gender, sp.phone, sp.id_card, sp.hire_date, sp.title, g.id]
+        );
+        console.log(`[DB-Init] + 新增人员: ${sp.name} → ${g.name}`);
+      }
+    } else {
+      console.log('[DB-Init] - personnel 表已有数据，跳过样本插入');
+    }
+
+    // ============ 15. th_records 温湿度记录表 ============
+    await query(`
+      IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='th_records' AND xtype='U')
+      BEGIN
+        CREATE TABLE th_records (
+            id              INT IDENTITY(1,1) PRIMARY KEY,
+            record_date     DATE NOT NULL,
+            period          NVARCHAR(2) NOT NULL,
+            temperature     DECIMAL(5,1),
+            humidity        DECIMAL(4,1),
+            recorder        NVARCHAR(50),
+            remarks         NVARCHAR(500),
+            group_id        INT NOT NULL,
+            created_at      DATETIME DEFAULT GETDATE(),
+            updated_at      DATETIME DEFAULT GETDATE(),
+            CONSTRAINT FK_threcords_group FOREIGN KEY (group_id) REFERENCES groups(id)
+        );
+
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='主键ID，自增',               @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='记录日期（精确到日期）',      @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='record_date';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='时段: 上午/下午',            @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='period';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='温度(°C)',                  @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='temperature';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='湿度(%RH)',                 @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='humidity';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='记录人',                     @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='recorder';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='备注',                       @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='remarks';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='所属小组ID，外键关联groups表', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='group_id';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='创建时间',                   @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='created_at';
+        EXEC sys.sp_addextendedproperty @name='MS_Description', @value='最后更新时间',                @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='updated_at';
+      END
+    `);
+    console.log('[DB-Init] ✓ th_records 表已就绪');
+
+    // ---------- th_records 字段补增：location ----------
+    const thLocCheck = await query(`SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('th_records') AND name = 'location'`);
+    if (thLocCheck.recordset.length === 0) {
+      await query(`ALTER TABLE th_records ADD location NVARCHAR(200)`);
+      await query(`EXEC sys.sp_addextendedproperty @name='MS_Description', @value='监测位置（如: 生化实验室A区）', @level0type='SCHEMA',@level0name='dbo', @level1type='TABLE',@level1name='th_records', @level2type='COLUMN',@level2name='location'`);
+      console.log('[DB-Init] ✓ th_records 表已增加 location 字段');
+    } else {
+      console.log('[DB-Init] - th_records.location 字段已存在，跳过');
+    }
+
+    // --- 样本数据: th_records ---
+    const thCount = await query("SELECT COUNT(*) AS cnt FROM th_records");
+    if (thCount.recordset[0].cnt === 0) {
+      const groups = await query("SELECT id FROM groups");
+      const sampleTH = [
+        { record_date: '2026-06-15', period: '上午', temperature: 22.5, humidity: 45.0, recorder: '张明', remarks: '空调运行正常' },
+        { record_date: '2026-06-15', period: '下午', temperature: 23.0, humidity: 48.0, recorder: '李红', remarks: '' },
+        { record_date: '2026-06-14', period: '上午', temperature: 21.8, humidity: 42.0, recorder: '张明', remarks: '通风良好' },
+        { record_date: '2026-06-14', period: '下午', temperature: 22.2, humidity: 44.5, recorder: '李红', remarks: '' },
+      ];
+      for (const grp of groups.recordset) {
+        for (const rec of sampleTH) {
+          await query(
+            `INSERT INTO th_records (record_date, period, temperature, humidity, recorder, remarks, group_id)
+             VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)`,
+            [rec.record_date, rec.period, rec.temperature, rec.humidity, rec.recorder, rec.remarks, grp.id]
+          );
+        }
+      }
+      console.log('[DB-Init] + 新增温湿度样本记录');
+    } else {
+      console.log('[DB-Init] - th_records 表已有数据，跳过样本插入');
     }
 
     // ============ 完成 ============

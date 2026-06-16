@@ -2,77 +2,6 @@
    设备设施 — 设备台账样式
    ======================================== */
 
-/* ---------- 工具栏 ---------- */
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.toolbar .search-group {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  flex: 1;
-  min-width: 200px;
-  max-width: 420px;
-}
-
-.toolbar .search-group input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: var(--radius) 0 0 var(--radius);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.toolbar .search-group input:focus {
-  border-color: var(--primary);
-}
-
-.toolbar .search-group .btn-search {
-  padding: 8px 14px;
-  border: 1px solid var(--primary);
-  background: var(--primary);
-  color: #fff;
-  border-radius: 0 var(--radius) var(--radius) 0;
-  cursor: pointer;
-  font-size: 14px;
-  font-family: inherit;
-  transition: background 0.2s;
-}
-
-.toolbar .search-group .btn-search:hover {
-  background: var(--primary-dark);
-}
-
-.toolbar .btn-clear {
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-secondary);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 13px;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-
-.toolbar .btn-clear:hover {
-  background: var(--bg);
-  color: var(--text);
-}
-
-.toolbar .btn-add {
-  margin-left: auto;
-}
-
 /* ---------- 状态标签 ---------- */
 .status-badge {
   display: inline-block;
@@ -88,126 +17,14 @@
 .status-badge.repairing { background: #fff7ed; color: #ea580c; }
 .status-badge.scrapped  { background: #f3f4f6; color: #6b7280; }
 
-/* ---------- 表格操作按钮 ---------- */
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.15s;
-  margin-right: 4px;
-}
-
-.btn-icon:hover {
-  background: var(--primary-light);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
-.btn-icon.delete:hover {
-  background: #fef2f2;
-  color: var(--danger);
-  border-color: var(--danger);
-}
-
-/* ---------- 详情网格（预览模式） ---------- */
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 24px;
-}
-
-.detail-grid .detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.detail-grid .detail-item.full {
-  grid-column: 1 / -1;
-}
-
-.detail-grid .detail-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-grid .detail-value {
-  font-size: 14px;
-  color: var(--text);
-  padding: 6px 10px;
-  background: var(--bg);
-  border-radius: 6px;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-}
-
-.detail-grid .detail-value.empty {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-/* ---------- 模态框 wider for equipment form ---------- */
-.modal-wider {
-  max-width: 600px;
-}
-
-/* ---------- 表单两列布局 ---------- */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 16px;
-}
-
 /* ---------- textarea ---------- */
 .modal textarea.form-control {
   resize: vertical;
   min-height: 60px;
 }
 
-/* ---------- 搜索无结果 ---------- */
-.table-empty {
-  text-align: center;
-  padding: 40px;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
 /* ---------- 响应式 ---------- */
-@media (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar .search-group {
-    max-width: none;
-  }
-
-  .toolbar .btn-add {
-    margin-left: 0;
-    align-self: flex-end;
-  }
-
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
+/* 工具栏/搜索框/表单两列/详情网格/日期范围响应式已迁入 common.css */
 
 /* ---------- 维护类型标签 ---------- */
 .mt-type-badge {
@@ -432,3 +249,69 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ---------- 模板配置弹窗 ---------- */
+.tpl-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 16px 0;
+}
+
+.tpl-fieldset legend {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 13px;
+  padding: 0 6px;
+}
+
+.tpl-col-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tpl-col-row:last-child {
+  border-bottom: none;
+}
+
+.tpl-col-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.tpl-col-check input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.tpl-col-label-input {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  max-width: 180px;
+  outline: none;
+}
+
+.tpl-col-label-input:focus {
+  border-color: var(--primary);
+}
+
+/* ---------- 打印按钮 ---------- */
+.toolbar .fa-print,
+.toolbar .fa-gear {
+  margin-right: 4px;
+}
+

@@ -64,7 +64,7 @@ router.post('/instruments', authMiddleware, async (req, res) => {
     const groupId = (req.user.role === 'admin' && req.body.group_id)
       ? parseInt(req.body.group_id, 10)
       : req.user.group_id;
-    const { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks } = req.body;
+    const { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks, daily_maintenance, weekly_maintenance, monthly_maintenance } = req.body;
 
     // 验证必填字段
     if (!name || !name.trim()) {
@@ -77,11 +77,11 @@ router.post('/instruments', authMiddleware, async (req, res) => {
       return res.status(400).json({ code: 400, message: '仪器厂商不能为空' });
     }
 
-    const insertTypes = new Array(11);
-    insertTypes[10] = sql.Int;  // group_id
+    const insertTypes = new Array(14);
+    insertTypes[13] = sql.Int;  // group_id
     await query(
-      `INSERT INTO instruments (name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks, group_id)
-       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)`,
+      `INSERT INTO instruments (name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks, daily_maintenance, weekly_maintenance, monthly_maintenance, group_id)
+       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13)`,
       [
         name.trim(),
         model.trim(),
@@ -93,6 +93,9 @@ router.post('/instruments', authMiddleware, async (req, res) => {
         location ? location.trim() : null,
         contact_person ? contact_person.trim() : null,
         remarks ? remarks.trim() : null,
+        daily_maintenance ? daily_maintenance.trim() : null,
+        weekly_maintenance ? weekly_maintenance.trim() : null,
+        monthly_maintenance ? monthly_maintenance.trim() : null,
         groupId,
       ],
       insertTypes
@@ -114,7 +117,7 @@ router.put('/instruments/:id', authMiddleware, async (req, res) => {
     const targetGroupId = (req.user.role === 'admin' && req.body.group_id)
       ? parseInt(req.body.group_id, 10)
       : currentGroupId;
-    const { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks } = req.body;
+    const { name, model, serial_number, manufacturer, purchase_date, add_date, status, location, contact_person, remarks, daily_maintenance, weekly_maintenance, monthly_maintenance } = req.body;
 
     // 验证必填字段
     if (!name || !name.trim()) {
@@ -144,18 +147,19 @@ router.put('/instruments/:id', authMiddleware, async (req, res) => {
     }
 
     // UPDATE（admin 跨组时不校验当前 group_id）
-    const updateTypes = new Array(12);
-    updateTypes[10] = sql.Int;  // id
-    updateTypes[11] = sql.Int;  // targetGroupId
+    const updateTypes = new Array(15);
+    updateTypes[13] = sql.Int;  // id
+    updateTypes[14] = sql.Int;  // targetGroupId
     const updateWhere = (req.user.role === 'admin')
-      ? 'WHERE id = @p10'       // admin 跨组：只按 id 定位
-      : 'WHERE id = @p10 AND group_id = @p11';  // 非 admin：限定小组
+      ? 'WHERE id = @p13'       // admin 跨组：只按 id 定位
+      : 'WHERE id = @p13 AND group_id = @p14';  // 非 admin：限定小组
     await query(
       `UPDATE instruments
        SET name = @p0, model = @p1, serial_number = @p2, manufacturer = @p3,
            purchase_date = @p4, add_date = @p5, status = @p6,
            location = @p7, contact_person = @p8, remarks = @p9,
-           group_id = @p11, updated_at = GETDATE()
+           daily_maintenance = @p10, weekly_maintenance = @p11, monthly_maintenance = @p12,
+           group_id = @p14, updated_at = GETDATE()
        ${updateWhere}`,
       [
         name.trim(),
@@ -168,6 +172,9 @@ router.put('/instruments/:id', authMiddleware, async (req, res) => {
         location ? location.trim() : null,
         contact_person ? contact_person.trim() : null,
         remarks ? remarks.trim() : null,
+        daily_maintenance ? daily_maintenance.trim() : null,
+        weekly_maintenance ? weekly_maintenance.trim() : null,
+        monthly_maintenance ? monthly_maintenance.trim() : null,
         id,
         targetGroupId,
       ],
@@ -232,7 +239,12 @@ router.delete('/instruments/:id', authMiddleware, async (req, res) => {
 router.get('/maintenance', authMiddleware, async (req, res) => {
   try {
     const groupId = req.user.group_id;
-    const { search, instrument_id } = req.query;
+    const { search, instrument_id, date_from, date_to } = req.query;
+
+    // 日期范围校验
+    if (date_from && date_to && date_from > date_to) {
+      return res.status(400).json({ code: 400, message: '开始日期不能晚于结束日期' });
+    }
 
     let sqlStr = `
       SELECT mr.*, i.name AS instrument_name, i.model AS instrument_model
@@ -241,16 +253,33 @@ router.get('/maintenance', authMiddleware, async (req, res) => {
       WHERE mr.group_id = @p0`;
     const params = [groupId];
     const types = [sql.Int];
+    let pIdx = 1;
 
     if (instrument_id) {
-      sqlStr += ' AND mr.instrument_id = @p1';
+      sqlStr += ` AND mr.instrument_id = @p${pIdx}`;
       params.push(parseInt(instrument_id, 10));
       types.push(sql.Int);
+      pIdx++;
     } else if (search && search.trim()) {
-      sqlStr += ' AND (i.name LIKE @p1 OR i.model LIKE @p2 OR mr.performed_by LIKE @p3)';
       const kw = `%${search.trim()}%`;
+      sqlStr += ` AND (i.name LIKE @p${pIdx} OR i.model LIKE @p${pIdx + 1} OR mr.performed_by LIKE @p${pIdx + 2})`;
       params.push(kw, kw, kw);
       types.push(undefined, undefined, undefined);
+      pIdx += 3;
+    }
+
+    if (date_from) {
+      sqlStr += ` AND mr.maintenance_date >= @p${pIdx}`;
+      params.push(date_from);
+      types.push(undefined);
+      pIdx++;
+    }
+
+    if (date_to) {
+      sqlStr += ` AND mr.maintenance_date <= @p${pIdx}`;
+      params.push(date_to);
+      types.push(undefined);
+      pIdx++;
     }
 
     sqlStr += ' ORDER BY mr.maintenance_date DESC, mr.id DESC';
@@ -293,7 +322,7 @@ router.get('/maintenance/:id', authMiddleware, async (req, res) => {
 router.post('/maintenance', authMiddleware, async (req, res) => {
   try {
     const groupId = req.user.group_id;
-    const { instrument_id, maintenance_date, maintenance_type, performed_by, remarks } = req.body;
+    const { instrument_id, maintenance_date, maintenance_type, performed_by, maintenance_content, remarks } = req.body;
 
     // 验证必填字段
     if (!instrument_id) {
@@ -320,17 +349,18 @@ router.post('/maintenance', authMiddleware, async (req, res) => {
     }
 
     await query(
-      `INSERT INTO maintenance_records (instrument_id, maintenance_date, maintenance_type, performed_by, group_id, remarks)
-       VALUES (@p0, @p1, @p2, @p3, @p4, @p5)`,
+      `INSERT INTO maintenance_records (instrument_id, maintenance_date, maintenance_type, performed_by, maintenance_content, group_id, remarks)
+       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6)`,
       [
         parseInt(instrument_id, 10),
         maintenance_date,
         maintenance_type.trim(),
         performed_by.trim(),
+        maintenance_content ? maintenance_content.trim() : null,
         groupId,
         remarks ? remarks.trim() : null,
       ],
-      [sql.Int, undefined, undefined, undefined, sql.Int, undefined]
+      [sql.Int, undefined, undefined, undefined, undefined, sql.Int, undefined]
     );
 
     res.json({ code: 200, message: '维护记录添加成功' });
@@ -345,7 +375,7 @@ router.put('/maintenance/:id', authMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
-    const { instrument_id, maintenance_date, maintenance_type, performed_by, remarks } = req.body;
+    const { instrument_id, maintenance_date, maintenance_type, performed_by, maintenance_content, remarks } = req.body;
 
     // 验证必填字段
     if (!instrument_id) {
@@ -384,18 +414,19 @@ router.put('/maintenance/:id', authMiddleware, async (req, res) => {
     await query(
       `UPDATE maintenance_records
        SET instrument_id = @p0, maintenance_date = @p1, maintenance_type = @p2,
-           performed_by = @p3, remarks = @p4, updated_at = GETDATE()
-       WHERE id = @p5 AND group_id = @p6`,
+           performed_by = @p3, maintenance_content = @p4, remarks = @p5, updated_at = GETDATE()
+       WHERE id = @p6 AND group_id = @p7`,
       [
         parseInt(instrument_id, 10),
         maintenance_date,
         maintenance_type.trim(),
         performed_by.trim(),
+        maintenance_content ? maintenance_content.trim() : null,
         remarks ? remarks.trim() : null,
         id,
         groupId,
       ],
-      [sql.Int, undefined, undefined, undefined, undefined, sql.Int, sql.Int]
+      [sql.Int, undefined, undefined, undefined, undefined, undefined, sql.Int, sql.Int]
     );
 
     res.json({ code: 200, message: '维护记录更新成功' });
@@ -441,7 +472,12 @@ router.delete('/maintenance/:id', authMiddleware, async (req, res) => {
 router.get('/usage', authMiddleware, async (req, res) => {
   try {
     const groupId = req.user.group_id;
-    const { search } = req.query;
+    const { search, date_from, date_to } = req.query;
+
+    // 日期范围校验
+    if (date_from && date_to && date_from > date_to) {
+      return res.status(400).json({ code: 400, message: '开始日期不能晚于结束日期' });
+    }
 
     let sqlStr = `
       SELECT ur.*, i.name AS instrument_name, i.model AS instrument_model
@@ -450,12 +486,28 @@ router.get('/usage', authMiddleware, async (req, res) => {
       WHERE ur.group_id = @p0`;
     const params = [groupId];
     const types = [sql.Int];
+    let pIdx = 1;
 
     if (search && search.trim()) {
-      sqlStr += ' AND (i.name LIKE @p1 OR i.model LIKE @p2 OR ur.operator LIKE @p3 OR ur.sample_type LIKE @p4)';
+      sqlStr += ` AND (i.name LIKE @p${pIdx} OR i.model LIKE @p${pIdx+1} OR ur.operator LIKE @p${pIdx+2} OR ur.sample_type LIKE @p${pIdx+3})`;
       const kw = `%${search.trim()}%`;
       params.push(kw, kw, kw, kw);
       types.push(undefined, undefined, undefined, undefined);
+      pIdx += 4;
+    }
+
+    if (date_from) {
+      sqlStr += ` AND ur.usage_date >= @p${pIdx}`;
+      params.push(date_from);
+      types.push(undefined);
+      pIdx++;
+    }
+
+    if (date_to) {
+      sqlStr += ` AND ur.usage_date <= @p${pIdx}`;
+      params.push(date_to);
+      types.push(undefined);
+      pIdx++;
     }
 
     sqlStr += ' ORDER BY ur.usage_date DESC, ur.start_time DESC, ur.id DESC';
@@ -660,7 +712,12 @@ router.delete('/usage/:id', authMiddleware, async (req, res) => {
 router.get('/repair', authMiddleware, async (req, res) => {
   try {
     const groupId = req.user.group_id;
-    const { search } = req.query;
+    const { search, date_from, date_to } = req.query;
+
+    // 日期范围校验
+    if (date_from && date_to && date_from > date_to) {
+      return res.status(400).json({ code: 400, message: '开始日期不能晚于结束日期' });
+    }
 
     let sqlStr = `
       SELECT rr.*, i.name AS instrument_name, i.model AS instrument_model
@@ -669,12 +726,28 @@ router.get('/repair', authMiddleware, async (req, res) => {
       WHERE rr.group_id = @p0`;
     const params = [groupId];
     const types = [sql.Int];
+    let pIdx = 1;
 
     if (search && search.trim()) {
-      sqlStr += ' AND (i.name LIKE @p1 OR i.model LIKE @p2 OR rr.discoverer LIKE @p3 OR rr.handler LIKE @p4)';
       const kw = `%${search.trim()}%`;
+      sqlStr += ` AND (i.name LIKE @p${pIdx} OR i.model LIKE @p${pIdx + 1} OR rr.discoverer LIKE @p${pIdx + 2} OR rr.handler LIKE @p${pIdx + 3})`;
       params.push(kw, kw, kw, kw);
       types.push(undefined, undefined, undefined, undefined);
+      pIdx += 4;
+    }
+
+    if (date_from) {
+      sqlStr += ` AND rr.discovery_time >= @p${pIdx}`;
+      params.push(date_from);
+      types.push(undefined);
+      pIdx++;
+    }
+
+    if (date_to) {
+      sqlStr += ` AND rr.discovery_time <= @p${pIdx}`;
+      params.push(date_to);
+      types.push(undefined);
+      pIdx++;
     }
 
     sqlStr += ' ORDER BY rr.discovery_time DESC, rr.id DESC';

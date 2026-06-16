@@ -1,0 +1,226 @@
+/* ========================================
+   人力资源 — 人员信息 CV 简历风格弹窗
+   ======================================== */
+
+/* ---------- CV 左右分栏布局 ---------- */
+.cv-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ---------- 左侧：照片区域 ---------- */
+.cv-photo-section {
+  flex-shrink: 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.cv-photo-box {
+  width: 140px;
+  height: 180px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  position: relative;
+}
+
+.cv-photo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cv-photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.cv-photo-placeholder i {
+  font-size: 36px;
+  opacity: 0.25;
+}
+
+.cv-photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.cv-photo-upload-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.cv-photo-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+
+.cv-photo-remove:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---------- 右侧：详情区域 ---------- */
+.cv-details-section {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- 表单模式：姓名 + 职称头部 --- */
+.cv-header-section {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.cv-name-input {
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid var(--primary);
+  border-radius: 0;
+  padding: 4px 0;
+  background: transparent;
+  width: 100%;
+  margin-bottom: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.cv-name-input:focus {
+  box-shadow: none;
+  border-bottom-color: var(--primary-dark);
+}
+
+.cv-title-input {
+  font-size: 14px;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 0;
+  padding: 4px 0;
+  background: transparent;
+  width: 100%;
+  outline: none;
+}
+
+.cv-title-input:focus {
+  box-shadow: none;
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- 表单模式：2 列网格 --- */
+.cv-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+/* ---------- 查看模式：姓名 + 职称头部 ---------- */
+.cv-header-view {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.cv-view-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.cv-view-title {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* --- 查看模式：2 列标签-值网格 --- */
+.cv-details-grid-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+}
+
+.cv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cv-field.full {
+  grid-column: 1 / -1;
+}
+
+.cv-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cv-value {
+  font-size: 14px;
+  color: var(--text);
+  padding: 5px 10px;
+  background: var(--bg);
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+/* --- 查看模式：底部时间戳 --- */
+.cv-meta {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 600px) {
+  .cv-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cv-details-grid,
+  .cv-details-grid-view {
+    grid-template-columns: 1fr;
+  }
+}

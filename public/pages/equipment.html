@@ -105,13 +105,20 @@
     <!-- ====== 面板：日常保养记录 ====== -->
     <div class="tab-panel" id="panel-maintenance">
       <div class="card">
-        <!-- 工具栏：搜索 + 新增 -->
+        <!-- 工具栏：搜索 + 日期范围 + 打印 + 模板 + 新增 -->
         <div class="toolbar">
           <div class="search-group">
             <input type="text" id="mtSearchInput" placeholder="搜索仪器名称、型号、执行人...">
             <button class="btn-search" onclick="doMaintenanceSearch()"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
           </div>
+          <div class="date-range-group">
+            <input type="date" id="mtDateFrom" class="date-input" title="开始日期">
+            <span class="date-separator">至</span>
+            <input type="date" id="mtDateTo" class="date-input" title="结束日期">
+          </div>
           <button class="btn btn-outline btn-clear btn-sm" onclick="clearMaintenanceSearch()"><i class="fa-solid fa-xmark"></i> 清除</button>
+          <button class="btn btn-outline btn-sm" onclick="printMaintenanceRecords()" title="打印当前搜索结果"><i class="fa-solid fa-print"></i> 打印</button>
+          <button class="btn btn-outline btn-sm" onclick="openTemplateConfig()" title="配置打印模板"><i class="fa-solid fa-gear"></i> 模板设置</button>
           <button class="btn btn-primary btn-sm btn-add" onclick="openMaintenanceDialog(null,'add')"><i class="fa-solid fa-plus"></i> 新增记录</button>
         </div>
 
@@ -136,13 +143,20 @@
     <!-- ====== 面板：使用登记记录 ====== -->
     <div class="tab-panel" id="panel-usage">
       <div class="card">
-        <!-- 工具栏：搜索 + 新增 -->
+        <!-- 工具栏：搜索 + 日期范围 + 打印 + 模板 + 新增 -->
         <div class="toolbar">
           <div class="search-group">
             <input type="text" id="urSearchInput" placeholder="搜索仪器名称、标本类型、操作人...">
             <button class="btn-search" onclick="doUsageSearch()"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
           </div>
+          <div class="date-range-group">
+            <input type="date" id="urDateFrom" class="date-input" title="开始日期">
+            <span class="date-separator">至</span>
+            <input type="date" id="urDateTo" class="date-input" title="结束日期">
+          </div>
           <button class="btn btn-outline btn-clear btn-sm" onclick="clearUsageSearch()"><i class="fa-solid fa-xmark"></i> 清除</button>
+          <button class="btn btn-outline btn-sm" onclick="printUsageRecords()" title="打印当前搜索结果"><i class="fa-solid fa-print"></i> 打印</button>
+          <button class="btn btn-outline btn-sm" onclick="openUsageTemplateConfig()" title="配置打印模板"><i class="fa-solid fa-gear"></i> 模板设置</button>
           <button class="btn btn-primary btn-sm btn-add" onclick="openUsageDialog(null,'add')"><i class="fa-solid fa-plus"></i> 新增记录</button>
         </div>
 
@@ -174,7 +188,14 @@
             <input type="text" id="rpSearchInput" placeholder="搜索仪器名称、发现人、处理人...">
             <button class="btn-search" onclick="doRepairSearch()"><i class="fa-solid fa-magnifying-glass"></i> 搜索</button>
           </div>
+          <div class="date-range-group">
+            <input type="date" id="rpDateFrom" class="date-input" title="发现时间-开始日期">
+            <span class="date-separator">至</span>
+            <input type="date" id="rpDateTo" class="date-input" title="发现时间-结束日期">
+          </div>
           <button class="btn btn-outline btn-clear btn-sm" onclick="clearRepairSearch()"><i class="fa-solid fa-xmark"></i> 清除</button>
+          <button class="btn btn-outline btn-sm" onclick="printRepairRecords()" title="打印当前搜索结果"><i class="fa-solid fa-print"></i> 打印</button>
+          <button class="btn btn-outline btn-sm" onclick="openRepairTemplateConfig()" title="配置打印模板"><i class="fa-solid fa-gear"></i> 模板设置</button>
           <button class="btn btn-primary btn-sm btn-add" onclick="openRepairDialog(null,'add')"><i class="fa-solid fa-plus"></i> 新增记录</button>
         </div>
 
@@ -291,6 +312,20 @@
             <input type="text" id="editContactPerson" class="form-control" placeholder="请输入负责人姓名">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>日维护</label>
+            <textarea id="editDailyMaintenance" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>周维护</label>
+            <textarea id="editWeeklyMaintenance" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>月维护</label>
+          <textarea id="editMonthlyMaintenance" class="form-control" rows="3"></textarea>
+        </div>
         <div class="form-group">
           <label>备注</label>
           <textarea id="editRemarks" class="form-control" rows="3" placeholder="其他备注信息..."></textarea>
@@ -327,7 +362,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>选择仪器 <span style="color:var(--danger);">*</span></label>
-            <select id="editMtInstrumentId" class="form-control">
+            <select id="editMtInstrumentId" class="form-control" onchange="autoFillMaintenanceContent()">
               <option value="">请选择仪器</option>
             </select>
           </div>
@@ -339,7 +374,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>保养类型 <span style="color:var(--danger);">*</span></label>
-            <select id="editMtType" class="form-control">
+            <select id="editMtType" class="form-control" onchange="autoFillMaintenanceContent()">
               <option value="">请选择保养类型</option>
               <option value="日保养">日保养</option>
               <option value="周保养">周保养</option>
@@ -350,6 +385,10 @@
             <label>执行人 <span style="color:var(--danger);">*</span></label>
             <input type="text" id="editMtPerformedBy" class="form-control" placeholder="请输入执行保养的人员姓名">
           </div>
+        </div>
+        <div class="form-group">
+          <label>维护内容 <span style="font-size:11px;color:var(--text-secondary);">（根据保养类型从仪器台账自动带入）</span></label>
+          <textarea id="editMtContent" class="form-control" rows="4" readonly style="background:#f3f4f6;color:#4b5563;"></textarea>
         </div>
         <div class="form-group">
           <label>备注</label>
@@ -370,6 +409,252 @@
     </div>
     <div class="modal-actions" id="mtActionsView" style="display:none;">
       <button class="btn btn-outline" onclick="closeMaintenanceDialog()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 打印模板配置弹窗 ====== -->
+<div class="modal-overlay" id="templateConfigModal" style="display:none;">
+  <div class="modal" style="max-width:650px;">
+    <h3 id="templateConfigTitle">打印模板设置 — 日常保养记录</h3>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div class="form-group">
+        <label>机构名称</label>
+        <input type="text" id="tplOrgName" class="form-control" placeholder="如：中国医学科学院血液病医院精准医学诊断中心">
+      </div>
+      <div class="form-group">
+        <label>机构副标题（地址）</label>
+        <input type="text" id="tplOrgSubtitle" class="form-control" placeholder="如：（天津市静海区团泊大道 28 号）">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报表标题</label>
+          <input type="text" id="tplTitle" class="form-control" placeholder="如：仪器设备保养登记表">
+        </div>
+        <div class="form-group">
+          <label>文档编号</label>
+          <input type="text" id="tplDocInfo" class="form-control" placeholder="如：XYBYY-JCZX-JL-6.4.3">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>页面方向</label>
+          <select id="tplOrientation" class="form-control">
+            <option value="portrait">纵向 (A4)</option>
+            <option value="landscape">横向 (A4)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>字号</label>
+          <select id="tplFontSize" class="form-control">
+            <option value="10">10px</option>
+            <option value="12" selected>12px</option>
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>正文字体</label>
+        <select id="tplFontFamily" class="form-control">
+          <option value="楷体, KaiTi, 楷体_GB2312, STKaiti, serif">楷体</option>
+          <option value="宋体, SimSun, STSong, serif">宋体</option>
+          <option value='"Microsoft YaHei", "SimHei", "PingFang SC", sans-serif'>微软雅黑</option>
+          <option value='"FangSong", "仿宋", STFangsong, serif'>仿宋</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>水印透明度</label>
+        <select id="tplBgOpacity" class="form-control">
+          <option value="0">关闭水印</option>
+          <option value="0.03">极淡 (3%)</option>
+          <option value="0.06" selected>淡 (6%)</option>
+          <option value="0.10">适中 (10%)</option>
+          <option value="0.15">较深 (15%)</option>
+          <option value="0.20">深 (20%)</option>
+        </select>
+      </div>
+      <fieldset class="tpl-fieldset">
+        <legend>显示列配置</legend>
+        <div id="tplColumnsList"></div>
+      </fieldset>
+      <div class="form-group">
+        <label>页眉附加文字</label>
+        <textarea id="tplHeader" class="form-control" rows="2" placeholder="可选：显示在报表日期下方的附加信息..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>页脚文字</label>
+        <textarea id="tplFooter" class="form-control" rows="2" placeholder="如：检验人签名: ____  审核人: ____  日期: ____"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('templateConfigModal').style.display='none'">取消</button>
+      <button class="btn btn-outline" onclick="resetTemplateToDefault()">恢复默认</button>
+      <button class="btn btn-primary" onclick="saveTemplateConfig()">保存模板</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 使用登记记录打印模板配置弹窗 ====== -->
+<div class="modal-overlay" id="usageTemplateConfigModal" style="display:none;">
+  <div class="modal" style="max-width:650px;">
+    <h3>打印模板设置 — 使用登记记录</h3>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div class="form-group">
+        <label>机构名称</label>
+        <input type="text" id="urTplOrgName" class="form-control" placeholder="如：中国医学科学院血液病医院精准医学诊断中心">
+      </div>
+      <div class="form-group">
+        <label>机构副标题（地址）</label>
+        <input type="text" id="urTplOrgSubtitle" class="form-control" placeholder="如：（天津市静海区团泊大道 28 号）">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报表标题</label>
+          <input type="text" id="urTplTitle" class="form-control" placeholder="如：仪器设备使用登记表">
+        </div>
+        <div class="form-group">
+          <label>文档编号</label>
+          <input type="text" id="urTplDocInfo" class="form-control" placeholder="如：XYBYY-JCZX-JL-6.4.2">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>页面方向</label>
+          <select id="urTplOrientation" class="form-control">
+            <option value="portrait">纵向 (A4)</option>
+            <option value="landscape">横向 (A4)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>字号</label>
+          <select id="urTplFontSize" class="form-control">
+            <option value="10">10px</option>
+            <option value="12" selected>12px</option>
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>正文字体</label>
+        <select id="urTplFontFamily" class="form-control">
+          <option value="楷体, KaiTi, 楷体_GB2312, STKaiti, serif">楷体</option>
+          <option value="宋体, SimSun, STSong, serif">宋体</option>
+          <option value='"Microsoft YaHei", "SimHei", "PingFang SC", sans-serif'>微软雅黑</option>
+          <option value='"FangSong", "仿宋", STFangsong, serif'>仿宋</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>水印透明度</label>
+        <select id="urTplBgOpacity" class="form-control">
+          <option value="0">关闭水印</option>
+          <option value="0.03">极淡 (3%)</option>
+          <option value="0.06" selected>淡 (6%)</option>
+          <option value="0.10">适中 (10%)</option>
+          <option value="0.15">较深 (15%)</option>
+          <option value="0.20">深 (20%)</option>
+        </select>
+      </div>
+      <fieldset class="tpl-fieldset">
+        <legend>显示列配置</legend>
+        <div id="urTplColumnsList"></div>
+      </fieldset>
+      <div class="form-group">
+        <label>页眉附加文字</label>
+        <textarea id="urTplHeader" class="form-control" rows="2" placeholder="可选：显示在报表日期下方..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>页脚文字</label>
+        <textarea id="urTplFooter" class="form-control" rows="2" placeholder="如：操作人签名: ____  审核人签名: ____  日期: ____"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('usageTemplateConfigModal').style.display='none'">取消</button>
+      <button class="btn btn-outline" onclick="resetUsageTemplateToDefault()">恢复默认</button>
+      <button class="btn btn-primary" onclick="saveUsageTemplateConfig()">保存模板</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 维修记录打印模板配置弹窗 ====== -->
+<div class="modal-overlay" id="repairTemplateConfigModal" style="display:none;">
+  <div class="modal" style="max-width:650px;">
+    <h3>打印模板设置 — 维修记录</h3>
+    <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+      <div class="form-group">
+        <label>机构名称</label>
+        <input type="text" id="rpTplOrgName" class="form-control" placeholder="如：中国医学科学院血液病医院精准医学诊断中心">
+      </div>
+      <div class="form-group">
+        <label>机构副标题（地址）</label>
+        <input type="text" id="rpTplOrgSubtitle" class="form-control" placeholder="如：（天津市静海区团泊大道 28 号）">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>报表标题</label>
+          <input type="text" id="rpTplTitle" class="form-control" placeholder="如：仪器设备维修记录表">
+        </div>
+        <div class="form-group">
+          <label>文档编号</label>
+          <input type="text" id="rpTplDocInfo" class="form-control" placeholder="如：XYBYY-JCZX-JL-6.4.4">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>页面方向</label>
+          <select id="rpTplOrientation" class="form-control">
+            <option value="portrait">纵向 (A4)</option>
+            <option value="landscape">横向 (A4)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>字号</label>
+          <select id="rpTplFontSize" class="form-control">
+            <option value="10">10px</option>
+            <option value="12" selected>12px</option>
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>正文字体</label>
+        <select id="rpTplFontFamily" class="form-control">
+          <option value="楷体, KaiTi, 楷体_GB2312, STKaiti, serif">楷体</option>
+          <option value="宋体, SimSun, STSong, serif">宋体</option>
+          <option value='"Microsoft YaHei", "SimHei", "PingFang SC", sans-serif'>微软雅黑</option>
+          <option value='"FangSong", "仿宋", STFangsong, serif'>仿宋</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>水印透明度</label>
+        <select id="rpTplBgOpacity" class="form-control">
+          <option value="0">关闭水印</option>
+          <option value="0.03">极淡 (3%)</option>
+          <option value="0.06" selected>淡 (6%)</option>
+          <option value="0.10">适中 (10%)</option>
+          <option value="0.15">较深 (15%)</option>
+          <option value="0.20">深 (20%)</option>
+        </select>
+      </div>
+      <fieldset class="tpl-fieldset">
+        <legend>显示列配置</legend>
+        <div id="rpTplColumnsList"></div>
+      </fieldset>
+      <div class="form-group">
+        <label>页眉附加文字</label>
+        <textarea id="rpTplHeader" class="form-control" rows="2" placeholder="可选：显示在报表日期下方..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>页脚文字</label>
+        <textarea id="rpTplFooter" class="form-control" rows="2" placeholder="如：处理人签名: ____  审核人签名: ____  日期: ____"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('repairTemplateConfigModal').style.display='none'">取消</button>
+      <button class="btn btn-outline" onclick="resetRepairTemplateToDefault()">恢复默认</button>
+      <button class="btn btn-primary" onclick="saveRepairTemplateConfig()">保存模板</button>
     </div>
   </div>
 </div>
