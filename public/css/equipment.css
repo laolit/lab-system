@@ -12,7 +12,7 @@
   white-space: nowrap;
 }
 
-.status-badge.in_use    { background: #f0fdf4; color: #16a34a; }
+.status-badge.in_use    { background: #f0fdfa; color: #0d9488; }
 .status-badge.idle      { background: #fefce8; color: #ca8a04; }
 .status-badge.repairing { background: #fff7ed; color: #ea580c; }
 .status-badge.scrapped  { background: #f3f4f6; color: #6b7280; }
@@ -36,7 +36,7 @@
   white-space: nowrap;
 }
 
-.mt-type-badge.mt-daily   { background: #eff6ff; color: #2563eb; }
+.mt-type-badge.mt-daily   { background: #eef2ff; color: #6366f1; }
 .mt-type-badge.mt-weekly  { background: #fefce8; color: #ca8a04; }
 .mt-type-badge.mt-monthly { background: #fdf4ff; color: #a21caf; }
 

@@ -1,5 +1,5 @@
 /* ========================================
-   仪表盘 & 主布局样式 — 重新设计版
+   仪表盘 & 主布局样式 — 试剂琥珀主题
    ======================================== */
 
 /* ---------- 布局 ---------- */
@@ -11,7 +11,7 @@
 /* ---------- 侧边栏 ---------- */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #0f1b35 0%, #152040 100%);
+  background: linear-gradient(180deg, #14181f 0%, #1a1e25 100%);
   color: #fff;
   position: fixed;
   top: 0; left: 0; bottom: 0;
@@ -30,7 +30,7 @@
 
 .sidebar-header .logo {
   width: 40px; height: 40px;
-  background: linear-gradient(135deg, var(--primary) 0%, #0d47a1 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -154,7 +154,7 @@
    ======================================== */
 
 .welcome-banner {
-  background: linear-gradient(135deg, #1a73e8 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
   border-radius: 12px;
   padding: 16px 24px;
   display: flex;
@@ -162,7 +162,7 @@
   justify-content: space-between;
   color: #fff;
   margin-bottom: 16px;
-  box-shadow: 0 4px 16px rgba(26, 115, 232, 0.25);
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.22);
 }
 
 .welcome-left {
@@ -214,6 +214,27 @@
   padding: 14px 24px;
   margin-bottom: 18px;
   gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 精密刻度线 — 仿实验室量筒刻度 */
+.stat-strip::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    var(--primary) 3px,
+    var(--primary) 4px
+  );
+  opacity: 0.18;
+  border-radius: 1px;
 }
 
 .stat-strip .stat-item {
@@ -257,17 +278,17 @@
 }
 
 /* stat color dots */
-.stat-hr .stat-dot      { background: #3b82f6; }
+.stat-hr .stat-dot      { background: #6366f1; }
 .stat-equipment .stat-dot { background: #d97706; }
-.stat-consumables .stat-dot { background: #16a34a; }
-.stat-documents .stat-dot  { background: #9333ea; }
+.stat-consumables .stat-dot { background: #0d9488; }
+.stat-documents .stat-dot  { background: #7c3aed; }
 .stat-environment .stat-dot { background: #0891b2; }
 .stat-risk .stat-dot     { background: #dc2626; }
 
-.stat-strip .stat-hr:hover .stat-value      { color: #3b82f6; }
+.stat-strip .stat-hr:hover .stat-value      { color: #6366f1; }
 .stat-strip .stat-equipment:hover .stat-value { color: #d97706; }
-.stat-strip .stat-consumables:hover .stat-value { color: #16a34a; }
-.stat-strip .stat-documents:hover .stat-value  { color: #9333ea; }
+.stat-strip .stat-consumables:hover .stat-value { color: #0d9488; }
+.stat-strip .stat-documents:hover .stat-value  { color: #7c3aed; }
 .stat-strip .stat-environment:hover .stat-value { color: #0891b2; }
 .stat-strip .stat-risk:hover .stat-value     { color: #dc2626; }
 
@@ -313,10 +334,10 @@
   height: 5px;
 }
 
-.module-hr .module-topbar         { background: #3b82f6; }
+.module-hr .module-topbar         { background: #6366f1; }
 .module-equipment .module-topbar  { background: #d97706; }
-.module-consumables .module-topbar { background: #16a34a; }
-.module-documents .module-topbar   { background: #9333ea; }
+.module-consumables .module-topbar { background: #0d9488; }
+.module-documents .module-topbar   { background: #7c3aed; }
 .module-environment .module-topbar { background: #0891b2; }
 .module-risk .module-topbar        { background: #dc2626; }
 
@@ -346,10 +367,10 @@
   flex-shrink: 0;
 }
 
-.module-hr .module-icon         { background: #eff6ff; color: #3b82f6; }
-.module-equipment .module-icon  { background: #fef3c7; color: #d97706; }
-.module-consumables .module-icon { background: #f0fdf4; color: #16a34a; }
-.module-documents .module-icon   { background: #faf5ff; color: #9333ea; }
+.module-hr .module-icon         { background: #eef2ff; color: #6366f1; }
+.module-equipment .module-icon  { background: #fef7ed; color: #d97706; }
+.module-consumables .module-icon { background: #f0fdfa; color: #0d9488; }
+.module-documents .module-icon   { background: #f5f3ff; color: #7c3aed; }
 .module-environment .module-icon { background: #ecfeff; color: #0891b2; }
 .module-risk .module-icon        { background: #fef2f2; color: #dc2626; }
 
@@ -397,10 +418,10 @@
 }
 
 /* ---------- 各模块进入按钮 hover 色 ---------- */
-.module-hr:hover .module-link         { background: #3b82f6; color: #fff; }
+.module-hr:hover .module-link         { background: #6366f1; color: #fff; }
 .module-equipment:hover .module-link  { background: #d97706; color: #fff; }
-.module-consumables:hover .module-link { background: #16a34a; color: #fff; }
-.module-documents:hover .module-link   { background: #9333ea; color: #fff; }
+.module-consumables:hover .module-link { background: #0d9488; color: #fff; }
+.module-documents:hover .module-link   { background: #7c3aed; color: #fff; }
 .module-environment:hover .module-link { background: #0891b2; color: #fff; }
 .module-risk:hover .module-link        { background: #dc2626; color: #fff; }
 

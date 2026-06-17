@@ -13,7 +13,7 @@ body.tat-page .main-content {
 }
 
 body.tat-page .topbar {
-  background: rgba(15, 20, 40, 0.95);
+  background: rgba(20, 24, 31, 0.95);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   backdrop-filter: blur(12px);
 }
@@ -88,7 +88,7 @@ body.tat-page .page-content > * {
 .kpi-card.intra { }
 .kpi-card.intra::before { background: linear-gradient(90deg, #0d9488, #22d3bb, #0d9488); }
 .kpi-card.pass { }
-.kpi-card.pass::before  { background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb); }
+.kpi-card.pass::before  { background: linear-gradient(90deg, #d97706, #f59e0b, #d97706); }
 .kpi-card.total { }
 .kpi-card.total::before { background: linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed); }
 
@@ -104,7 +104,7 @@ body.tat-page .page-content > * {
 
 .kpi-card.pre  .kpi-icon { background: rgba(99,102,241,0.15);  color: #818cf8; }
 .kpi-card.intra .kpi-icon { background: rgba(13,148,136,0.15); color: #22d3bb; }
-.kpi-card.pass  .kpi-icon { background: rgba(37,99,235,0.15);  color: #60a5fa; }
+.kpi-card.pass  .kpi-icon { background: rgba(217,119,6,0.15);  color: #f59e0b; }
 .kpi-card.total .kpi-icon { background: rgba(124,58,237,0.15); color: #a78bfa; }
 .kpi-card.alt1  .kpi-icon { background: rgba(245,158,11,0.15); color: #fbbf24; }
 .kpi-card.alt2  .kpi-icon { background: rgba(236,72,153,0.15); color: #f472b6; }
@@ -284,7 +284,7 @@ body.tat-page .page-content > * {
   font-weight: 600;
 }
 
-.badge-pass.good { background: rgba(22,163,74,0.15); color: #4ade80; }
+.badge-pass.good { background: rgba(13,148,136,0.15); color: #2dd4bf; }
 .badge-pass.warn { background: rgba(245,158,11,0.15); color: #fbbf24; }
 .badge-pass.bad  { background: rgba(220,38,38,0.15); color: #f87171; }
 
@@ -311,7 +311,7 @@ body.tat-page .page-content > * {
   transition: width 0.6s ease;
 }
 
-.mini-bar .fill.good { background: #4ade80; }
+.mini-bar .fill.good { background: #2dd4bf; }
 .mini-bar .fill.warn { background: #fbbf24; }
 .mini-bar .fill.bad  { background: #f87171; }
 
