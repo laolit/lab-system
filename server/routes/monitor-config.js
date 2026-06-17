@@ -1,17 +1,21 @@
 const express = require('express');
 const sql = require('mssql');
 const { query } = require('../utils/db');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, requireRole } = require('../middleware/auth');
 const { encryptPassword, decryptPassword } = require('../utils/crypto');
 
 const router = express.Router();
+
+// 所有路由需要登录 + 管理员角色
+router.use(authMiddleware);
+router.use(requireRole('admin'));
 
 // ============================================
 // 数据库连接源 — CRUD
 // ============================================
 
 // GET /api/monitor-config/sources — 数据源列表（支持搜索，不返回密码）
-router.get('/sources', authMiddleware, async (req, res) => {
+router.get('/sources', async (req, res) => {
   try {
     const groupId = req.user.group_id;
     const { search } = req.query;
@@ -36,7 +40,7 @@ router.get('/sources', authMiddleware, async (req, res) => {
 });
 
 // POST /api/monitor-config/sources — 新建数据源
-router.post('/sources', authMiddleware, async (req, res) => {
+router.post('/sources', async (req, res) => {
   try {
     const groupId = req.user.group_id;
     const { name, server, port, database_name, username, password, is_active } = req.body;
@@ -85,7 +89,7 @@ router.post('/sources', authMiddleware, async (req, res) => {
 });
 
 // GET /api/monitor-config/sources/:id — 数据源详情（解密返回明文密码）
-router.get('/sources/:id', authMiddleware, async (req, res) => {
+router.get('/sources/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -113,7 +117,7 @@ router.get('/sources/:id', authMiddleware, async (req, res) => {
 });
 
 // PUT /api/monitor-config/sources/:id — 更新数据源
-router.put('/sources/:id', authMiddleware, async (req, res) => {
+router.put('/sources/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -170,7 +174,7 @@ router.put('/sources/:id', authMiddleware, async (req, res) => {
 });
 
 // DELETE /api/monitor-config/sources/:id — 删除数据源（检查是否有子查询配置）
-router.delete('/sources/:id', authMiddleware, async (req, res) => {
+router.delete('/sources/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -211,7 +215,7 @@ router.delete('/sources/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/monitor-config/sources/test — 测试数据库连接
-router.post('/sources/test', authMiddleware, async (req, res) => {
+router.post('/sources/test', async (req, res) => {
   let pool = null;
   try {
     const { server, port, database_name, username, password } = req.body;
@@ -256,7 +260,7 @@ router.post('/sources/test', authMiddleware, async (req, res) => {
 // ============================================
 
 // GET /api/monitor-config/queries — 查询配置列表（支持筛选）
-router.get('/queries', authMiddleware, async (req, res) => {
+router.get('/queries', async (req, res) => {
   try {
     const groupId = req.user.group_id;
     const { source_id, search } = req.query;
@@ -291,7 +295,7 @@ router.get('/queries', authMiddleware, async (req, res) => {
 });
 
 // POST /api/monitor-config/queries — 新建查询配置
-router.post('/queries', authMiddleware, async (req, res) => {
+router.post('/queries', async (req, res) => {
   try {
     const groupId = req.user.group_id;
     const { source_id, name, sql_query, query_category, target_module, is_active } = req.body;
@@ -341,7 +345,7 @@ router.post('/queries', authMiddleware, async (req, res) => {
 });
 
 // GET /api/monitor-config/queries/:id — 查询配置详情
-router.get('/queries/:id', authMiddleware, async (req, res) => {
+router.get('/queries/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -367,7 +371,7 @@ router.get('/queries/:id', authMiddleware, async (req, res) => {
 });
 
 // PUT /api/monitor-config/queries/:id — 更新查询配置
-router.put('/queries/:id', authMiddleware, async (req, res) => {
+router.put('/queries/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -418,7 +422,7 @@ router.put('/queries/:id', authMiddleware, async (req, res) => {
 });
 
 // DELETE /api/monitor-config/queries/:id — 删除查询配置
-router.delete('/queries/:id', authMiddleware, async (req, res) => {
+router.delete('/queries/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const groupId = req.user.group_id;
@@ -446,7 +450,7 @@ router.delete('/queries/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /api/monitor-config/queries/test — 测试查询执行
-router.post('/queries/test', authMiddleware, async (req, res) => {
+router.post('/queries/test', async (req, res) => {
   let pool = null;
   try {
     const groupId = req.user.group_id;

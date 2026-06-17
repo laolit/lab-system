@@ -157,6 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('sidebarUserName').textContent =
     (getUser()?.display_name || getUser()?.username || '—');
 
+  // 检查权限
+  if (getUser()?.role !== 'admin') {
+    document.querySelector('.page-content').innerHTML = `
+      <div class="empty-state"><i class="fa-solid fa-lock"></i><p>权限不足，仅系统管理员可访问</p></div>`;
+    return;
+  }
+
   // 加载默认 Tab 数据
   loadSources();
   loadQueries();

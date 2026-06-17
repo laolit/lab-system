@@ -63,25 +63,41 @@ async function loadTATDashboard() {
       renderMockKpiCards(mockData.summary);
     }
 
-    // ---- 2. 折线图 ----
+    // ---- 2 & 3. 折线图 + 环形图（同一行，2:1 网格布局） ----
     const trendConfigs = (modules.trend_chart && modules.trend_chart.length > 0)
       ? modules.trend_chart.filter(c => c.data && c.data.length > 0 && !c.error)
       : [];
-    if (trendConfigs.length === 0 && mockData) {
-      // 用 mock 数据创建虚拟趋势卡片
-      renderMockTrendCard(mockData.trend);
-    } else {
-      trendConfigs.forEach(cfg => appendLineChartCard(cfg));
-    }
-
-    // ---- 3. 环形图 ----
     const doughnutConfigs = (modules.pass_distribution && modules.pass_distribution.length > 0)
       ? modules.pass_distribution.filter(c => c.data && c.data.length > 0 && !c.error)
       : [];
-    if (doughnutConfigs.length === 0 && mockData) {
-      renderMockDoughnutCard(mockData.items, mockData.summary.pass_rate);
+
+    if (trendConfigs.length === 0 && doughnutConfigs.length === 0 && mockData) {
+      // Mock：趋势图 + 环形图放在同一行
+      const row = startChartRow();
+      const trendCid = nextCanvasId();
+      const doughCid = nextCanvasId();
+      appendToRow(row, createChartCardHTML(trendCid, '近30天 TAT 趋势', 'fa-chart-line', 320));
+      appendToRow(row, createDoughnutCardHTML(doughCid, '项目达标率分布', 'fa-chart-pie'));
+      renderMockTrendChart(trendCid, mockData.trend);
+      renderMockDoughnutChart(doughCid, mockData.items, mockData.summary.pass_rate);
     } else {
-      doughnutConfigs.forEach(cfg => appendDoughnutChartCard(cfg));
+      // 动态配置：按最大数量配对，折线图左 环形图右
+      const maxLen = Math.max(trendConfigs.length, doughnutConfigs.length);
+      for (let i = 0; i < maxLen; i++) {
+        const hasTrend = i < trendConfigs.length;
+        const hasDoughnut = i < doughnutConfigs.length;
+        const row = startChartRow(!(hasTrend && hasDoughnut)); // 只有一个时用 single 占满行
+        if (hasTrend) {
+          const cid = nextCanvasId();
+          appendToRow(row, createChartCardHTML(cid, trendConfigs[i].name, 'fa-chart-line', 320));
+          renderLineChart(cid, trendConfigs[i]);
+        }
+        if (hasDoughnut) {
+          const cid = nextCanvasId();
+          appendToRow(row, createDoughnutCardHTML(cid, doughnutConfigs[i].name, 'fa-chart-pie'));
+          renderDoughnutChart(cid, doughnutConfigs[i]);
+        }
+      }
     }
 
     // ---- 4. 柱状图 ----
@@ -191,6 +207,26 @@ function appendRowToChartsArea(html) {
   wrapper.innerHTML = html;
   area.appendChild(wrapper);
   return wrapper;
+}
+
+// 创建一条 chart-row 并返回其 DOM 元素（用于逐步往里塞卡片）
+function startChartRow(single) {
+  const area = document.getElementById('dynamicChartsArea');
+  if (!area) return null;
+  const wrapper = document.createElement('div');
+  wrapper.className = single ? 'chart-row single' : 'chart-row';
+  area.appendChild(wrapper);
+  return wrapper;
+}
+
+// 向已有 row 容器中追加 HTML
+function appendToRow(rowEl, html) {
+  if (!rowEl) return;
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  while (temp.firstChild) {
+    rowEl.appendChild(temp.firstChild);
+  }
 }
 
 // ============================================
@@ -310,7 +346,11 @@ function renderLineChart(canvasId, cfg) {
 function renderMockTrendCard(trend) {
   const cid = nextCanvasId();
   appendRowToChartsArea(createChartCardHTML(cid, '近30天 TAT 趋势', 'fa-chart-line', 320));
-  const canvas = document.getElementById(cid);
+  renderMockTrendChart(cid, trend);
+}
+
+function renderMockTrendChart(canvasId, trend) {
+  const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
@@ -408,14 +448,18 @@ function renderDoughnutChart(canvasId, cfg) {
 function renderMockDoughnutCard(items, avgPassRate) {
   const cid = nextCanvasId();
   appendRowToChartsArea(createDoughnutCardHTML(cid, '项目达标率分布', 'fa-chart-pie'));
-  const canvas = document.getElementById(cid);
+  renderMockDoughnutChart(cid, items, avgPassRate);
+}
+
+function renderMockDoughnutChart(canvasId, items, avgPassRate) {
+  const canvas = document.getElementById(canvasId);
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
   const good = items.filter(i => i.pass_rate >= 95).length;
   const warn = items.filter(i => i.pass_rate >= 85 && i.pass_rate < 95).length;
   const bad = items.filter(i => i.pass_rate < 85).length;
-  const centerEl = document.getElementById(cid + '_center');
+  const centerEl = document.getElementById(canvasId + '_center');
   if (centerEl) centerEl.textContent = avgPassRate + '%';
 
   const chart = new Chart(ctx, {

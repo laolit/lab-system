@@ -189,3 +189,24 @@ function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// ---------- 侧边栏角色过滤：仅 admin 可见"系统管理" ----------
+function filterSidebarByRole() {
+  const user = getUser();
+  if (user && user.role === 'admin') return;
+
+  const sections = document.querySelectorAll('.sidebar-nav .nav-section');
+  for (const section of sections) {
+    if (section.textContent.trim() === '系统管理') {
+      section.style.display = 'none';
+      let next = section.nextElementSibling;
+      while (next && !next.classList.contains('nav-section')) {
+        if (next.tagName === 'A') next.style.display = 'none';
+        next = next.nextElementSibling;
+      }
+      break;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', filterSidebarByRole);
