@@ -2,6 +2,20 @@
    公共 JS — HTTP 封装、鉴权、导航、UI 辅助
    ======================================== */
 
+// ---- ES2020 Polyfills（兼容内网旧浏览器） ----
+if (!Promise.allSettled) {
+  Promise.allSettled = function (promises) {
+    return Promise.all(
+      promises.map(function (p) {
+        return Promise.resolve(p).then(
+          function (value) { return { status: 'fulfilled', value: value }; },
+          function (reason) { return { status: 'rejected', reason: reason }; }
+        );
+      })
+    );
+  };
+}
+
 const API_BASE = '/api';
 
 // ---------- Token 管理 ----------
