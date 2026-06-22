@@ -37,14 +37,14 @@
 /* 血球计数板网格 — 三层叠加 */
 .visual-grid {
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; width: 100%; height: 100%;
   opacity: 0.45;
 }
 
 .visual-grid::before {
   content: '';
   position: absolute;
-  inset: 40px;
+  top: 40px; left: 40px; right: 40px; bottom: 40px;
   /* 大格 3×3 */
   background-image:
     linear-gradient(to right,  #94a3b8 1px, transparent 1px),
