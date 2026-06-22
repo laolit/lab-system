@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
   loadTATDashboard();
 });
 
@@ -39,12 +39,12 @@ async function loadTATDashboard() {
       http.get('/quality/tat-dashboard'),
     ]);
 
-    const dynData = (dynResp.status === 'fulfilled' && dynResp.value?.code === 200)
+    const dynData = (dynResp.status === 'fulfilled' && (dynResp.value || {}).code === 200)
       ? dynResp.value.data : null;
-    const mockData = (mockResp.status === 'fulfilled' && mockResp.value?.code === 200)
+    const mockData = (mockResp.status === 'fulfilled' && (mockResp.value || {}).code === 200)
       ? mockResp.value.data : null;
 
-    const modules = dynData?.modules || {};
+    const modules = (dynData || {}).modules || {};
 
     // 销毁所有旧图表
     destroyAllCharts();

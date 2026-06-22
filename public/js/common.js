@@ -129,7 +129,7 @@ async function switchGroup(groupId) {
         await window.refreshPageData();
       }
     } else {
-      showToast(resp?.message || '小组切换失败', 'error');
+      showToast((resp || {}).message || '小组切换失败', 'error');
     }
   } catch (err) {
     console.error('切换小组失败:', err);

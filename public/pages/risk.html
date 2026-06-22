@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>质量溯源与风险辅助 — ISO15189 实验室无纸化管理系统</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/libs/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/dashboard.css">
 </head>
@@ -64,7 +64,7 @@
 <script>
   if (!checkAuth()) {}
   renderUserInfo();
-  document.getElementById('sidebarUserName').textContent = (getUser()?.display_name || getUser()?.username || '—');
+  document.getElementById('sidebarUserName').textContent = ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 </script>
 </body>
 </html>

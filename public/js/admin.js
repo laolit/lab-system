@@ -8,10 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   // 检查权限
-  if (getUser()?.role !== 'admin') {
+  if ((getUser() || {}).role !== 'admin') {
     document.querySelector('.page-content').innerHTML = `
       <div class="empty-state"><i class="fa-solid fa-lock"></i><p>权限不足，仅系统管理员可访问</p></div>`;
     return;
@@ -163,7 +163,7 @@ async function saveUser() {
       closeUserModal();
       loadUsers();
     } else {
-      showToast(resp?.message || '更新失败', 'error');
+      showToast((resp || {}).message || '更新失败', 'error');
     }
   } else {
     // 新增
@@ -175,7 +175,7 @@ async function saveUser() {
       closeUserModal();
       loadUsers();
     } else {
-      showToast(resp?.message || '创建失败', 'error');
+      showToast((resp || {}).message || '创建失败', 'error');
     }
   }
 }
@@ -188,7 +188,7 @@ async function deleteUser(id, username) {
       overlay.remove();
       loadUsers();
     } else {
-      showToast(resp?.message || '删除失败', 'error');
+      showToast((resp || {}).message || '删除失败', 'error');
     }
   });
 }
@@ -207,7 +207,7 @@ async function resetPassword(id) {
       showToast('密码重置成功');
       overlay.remove();
     } else {
-      showToast(resp?.message || '密码重置失败', 'error');
+      showToast((resp || {}).message || '密码重置失败', 'error');
     }
   });
 }
@@ -300,7 +300,7 @@ async function saveGroup() {
       await loadGroupsCache();
       loadGroups();
     } else {
-      showToast(resp?.message || '更新失败', 'error');
+      showToast((resp || {}).message || '更新失败', 'error');
     }
   } else {
     // 新增
@@ -311,7 +311,7 @@ async function saveGroup() {
       await loadGroupsCache();
       loadGroups();
     } else {
-      showToast(resp?.message || '创建失败', 'error');
+      showToast((resp || {}).message || '创建失败', 'error');
     }
   }
 }
@@ -325,7 +325,7 @@ async function deleteGroup(id, name) {
       await loadGroupsCache();
       loadGroups();
     } else {
-      showToast(resp?.message || '删除失败', 'error');
+      showToast((resp || {}).message || '删除失败', 'error');
     }
   });
 }

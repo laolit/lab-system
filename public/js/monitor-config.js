@@ -155,10 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   // 检查权限
-  if (getUser()?.role !== 'admin') {
+  if ((getUser() || {}).role !== 'admin') {
     document.querySelector('.page-content').innerHTML = `
       <div class="empty-state"><i class="fa-solid fa-lock"></i><p>权限不足，仅系统管理员可访问</p></div>`;
     return;
@@ -184,14 +184,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('querySearchInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') loadQueries(
-      document.getElementById('querySourceFilter')?.value || '',
+      (document.getElementById('querySourceFilter') || {}).value || '',
       e.target.value
     );
   });
 
   // 查询Tab数据源筛选变化
   document.getElementById('querySourceFilter').addEventListener('change', function () {
-    loadQueries(this.value, document.getElementById('querySearchInput')?.value || '');
+    loadQueries(this.value, (document.getElementById('querySearchInput') || {}).value || '');
   });
 
   // 目标子模块切换 → 显示 SQL 编写指南
@@ -351,9 +351,9 @@ async function saveSource() {
     if (resp && resp.code === 200) {
       showToast(id ? '数据源更新成功' : '数据源添加成功', 'success');
       closeSourceDialog();
-      loadSources(document.getElementById('srcSearchInput')?.value || '');
+      loadSources((document.getElementById('srcSearchInput') || {}).value || '');
     } else {
-      showToast(resp?.message || '操作失败', 'error');
+      showToast((resp || {}).message || '操作失败', 'error');
     }
   } catch (err) {
     console.error('保存数据源失败:', err);
@@ -367,10 +367,10 @@ async function deleteSource(id, name) {
       const resp = await http.del('/monitor-config/sources/' + id);
       if (resp && resp.code === 200) {
         showToast('数据源删除成功', 'success');
-        document.querySelector('.modal-overlay:not([style*="none"])')?.remove?.();
-        loadSources(document.getElementById('srcSearchInput')?.value || '');
+        (function(){var _e=document.querySelector('.modal-overlay:not([style*="none"])');if(_e&&typeof _e.remove==='function')_e.remove();})();
+        loadSources((document.getElementById('srcSearchInput') || {}).value || '');
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除数据源失败:', err);
@@ -396,9 +396,9 @@ async function testConnection() {
       server, port: parseInt(port, 10) || 1433, database_name, username, password,
     });
     if (resp && resp.code === 200) {
-      showToast(`连接成功（延迟 ${resp.data?.latency_ms || '—'} ms）`, 'success');
+      showToast(`连接成功（延迟 ${(resp.data || {}).latency_ms || '—'} ms）`, 'success');
     } else {
-      showToast(resp?.message || '连接失败', 'error');
+      showToast((resp || {}).message || '连接失败', 'error');
     }
   } catch (err) {
     console.error('测试连接失败:', err);
@@ -591,11 +591,11 @@ async function saveQuery() {
       showToast(id ? '查询配置更新成功' : '查询配置添加成功', 'success');
       closeQueryDialog();
       loadQueries(
-        document.getElementById('querySourceFilter')?.value || '',
-        document.getElementById('querySearchInput')?.value || ''
+        (document.getElementById('querySourceFilter') || {}).value || '',
+        (document.getElementById('querySearchInput') || {}).value || ''
       );
     } else {
-      showToast(resp?.message || '操作失败', 'error');
+      showToast((resp || {}).message || '操作失败', 'error');
     }
   } catch (err) {
     console.error('保存查询配置失败:', err);
@@ -609,13 +609,13 @@ async function deleteQuery(id, name) {
       const resp = await http.del('/monitor-config/queries/' + id);
       if (resp && resp.code === 200) {
         showToast('查询配置删除成功', 'success');
-        document.querySelector('.modal-overlay:not([style*="none"])')?.remove?.();
+        (function(){var _e=document.querySelector('.modal-overlay:not([style*="none"])');if(_e&&typeof _e.remove==='function')_e.remove();})();
         loadQueries(
-          document.getElementById('querySourceFilter')?.value || '',
-          document.getElementById('querySearchInput')?.value || ''
+          (document.getElementById('querySourceFilter') || {}).value || '',
+          (document.getElementById('querySearchInput') || {}).value || ''
         );
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除查询配置失败:', err);
@@ -651,7 +651,7 @@ async function testQuery() {
       outputPre.textContent = text;
       outputPre.className = 'success';
     } else {
-      outputPre.textContent = resp?.message || '查询执行失败';
+      outputPre.textContent = (resp || {}).message || '查询执行失败';
       outputPre.className = 'error';
     }
   } catch (err) {

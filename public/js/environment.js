@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   // 加载温湿度记录列表
   loadTHRecords();
@@ -43,9 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== 搜索 ==========
 function doTHSearch() {
-  const term = document.getElementById('thSearchInput')?.value || '';
-  const dateFrom = document.getElementById('thDateFrom')?.value || '';
-  const dateTo = document.getElementById('thDateTo')?.value || '';
+  const term = (document.getElementById('thSearchInput') || {}).value || '';
+  const dateFrom = (document.getElementById('thDateFrom') || {}).value || '';
+  const dateTo = (document.getElementById('thDateTo') || {}).value || '';
   if (dateFrom && dateTo && dateFrom > dateTo) {
     showToast('开始日期不能晚于结束日期', 'error');
     return;
@@ -191,7 +191,7 @@ async function loadTHFormByDate(dateStr) {
     const resp = await http.get(`/environment/threcords/date/${dateStr}`);
     console.log('[Edit] API响应:', resp);
     if (!resp || resp.code !== 200) {
-      showToast(`加载记录失败 (code: ${resp?.code || 'no response'})`, 'error');
+      showToast(`加载记录失败 (code: ${(resp || {}).code || 'no response'})`, 'error');
       return;
     }
 
@@ -230,7 +230,7 @@ async function renderTHViewByDate(dateStr) {
     const resp = await http.get(`/environment/threcords/date/${dateStr}`);
     console.log('[View] API响应:', resp);
     if (!resp || resp.code !== 200) {
-      container.innerHTML = `<p style="color:#dc2626;">加载失败 (code: ${resp?.code || 'no response'}, msg: ${esc(resp?.message || '')})</p>`;
+      container.innerHTML = `<p style="color:#dc2626;">加载失败 (code: ${(resp || {}).code || 'no response'}, msg: ${esc((resp || {}).message || '')})</p>`;
       return;
     }
 
@@ -408,7 +408,7 @@ function deleteTHRecord(id, desc) {
         overlay.remove();
         doTHSearch();
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       showToast('删除失败: ' + (err.message || '网络错误'), 'error');

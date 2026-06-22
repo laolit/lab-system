@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   loadPersonnelList('', '', '');
 
@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'personnel') {
         loadPersonnelList(
-          document.getElementById('searchInput')?.value || '',
-          document.getElementById('dateFrom')?.value || '',
-          document.getElementById('dateTo')?.value || ''
+          (document.getElementById('searchInput') || {}).value || '',
+          (document.getElementById('dateFrom') || {}).value || '',
+          (document.getElementById('dateTo') || {}).value || ''
         );
       }
     });
@@ -62,9 +62,9 @@ async function loadPersonnelList(searchTerm, dateFrom, dateTo) {
       await loadGroupOptions();
     }
 
-    const term = searchTerm !== undefined ? searchTerm : (document.getElementById('searchInput')?.value || '');
-    const dFrom = dateFrom !== undefined ? dateFrom : (document.getElementById('dateFrom')?.value || '');
-    const dTo = dateTo !== undefined ? dateTo : (document.getElementById('dateTo')?.value || '');
+    const term = searchTerm !== undefined ? searchTerm : ((document.getElementById('searchInput') || {}).value || '');
+    const dFrom = dateFrom !== undefined ? dateFrom : ((document.getElementById('dateFrom') || {}).value || '');
+    const dTo = dateTo !== undefined ? dateTo : ((document.getElementById('dateTo') || {}).value || '');
 
     const params = new URLSearchParams();
     if (term) params.set('search', term);
@@ -89,7 +89,7 @@ async function loadPersonnelList(searchTerm, dateFrom, dateTo) {
     }
 
     tbody.innerHTML = data.map(item => {
-      const groupName = allGroups.find(g => g.id === item.group_id)?.name || item.group_id;
+      const groupName = (allGroups.find(g => g.id === item.group_id) || {}).name || item.group_id;
       const hireDate = item.hire_date
         ? new Date(item.hire_date).toLocaleDateString('zh-CN')
         : '—';
@@ -232,7 +232,7 @@ async function openPersonnelDialog(id, mode) {
     document.getElementById('editHireDate').value = '';
 
     // 默认选中当前用户的小组
-    const currentGroupId = getGroup()?.id;
+    const currentGroupId = (getGroup() || {}).id;
     const sel = document.getElementById('editGroupId');
     if (sel && currentGroupId) {
       sel.value = currentGroupId;
@@ -278,7 +278,7 @@ function populatePersonnelForm(data) {
 // 渲染查看模式 — CV 简历卡片
 // ============================================
 function renderPersonnelDetail(data) {
-  const groupName = allGroups.find(g => g.id === data.group_id)?.name || '—';
+  const groupName = (allGroups.find(g => g.id === data.group_id) || {}).name || '—';
   const hireDate = data.hire_date
     ? new Date(data.hire_date).toLocaleDateString('zh-CN')
     : '—';
@@ -384,7 +384,7 @@ async function savePersonnelRecord() {
       closePersonnelDialog();
       doSearch();
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     showToast('保存失败: ' + (err.message || '网络错误'), 'error');
@@ -405,7 +405,7 @@ function deletePersonnelRecord(id, name) {
           overlay.remove();
           loadPersonnelList(document.getElementById('searchInput').value);
         } else {
-          showToast(resp?.message || '删除失败', 'error');
+          showToast((resp || {}).message || '删除失败', 'error');
         }
       } catch (err) {
         showToast('删除失败: ' + (err.message || '网络错误'), 'error');
@@ -472,9 +472,9 @@ function resetPhotoUI() {
 // ============================================
 window.refreshPageData = async function () {
   await loadPersonnelList(
-    document.getElementById('searchInput')?.value || '',
-    document.getElementById('dateFrom')?.value || '',
-    document.getElementById('dateTo')?.value || ''
+    (document.getElementById('searchInput') || {}).value || '',
+    (document.getElementById('dateFrom') || {}).value || '',
+    (document.getElementById('dateTo') || {}).value || ''
   );
 };
 

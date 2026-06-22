@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!checkAuth()) return;
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   // 加载仪器列表和维护记录
   loadInstruments();
@@ -25,23 +25,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
       if (btn.dataset.tab === 'maintenance') {
         loadMaintenanceRecords(
-          document.getElementById('mtSearchInput')?.value || '',
-          document.getElementById('mtDateFrom')?.value || '',
-          document.getElementById('mtDateTo')?.value || ''
+          (document.getElementById('mtSearchInput') || {}).value || '',
+          (document.getElementById('mtDateFrom') || {}).value || '',
+          (document.getElementById('mtDateTo') || {}).value || ''
         );
       }
       if (btn.dataset.tab === 'usage') {
         loadUsageRecords(
-          document.getElementById('urSearchInput')?.value || '',
-          document.getElementById('urDateFrom')?.value || '',
-          document.getElementById('urDateTo')?.value || ''
+          (document.getElementById('urSearchInput') || {}).value || '',
+          (document.getElementById('urDateFrom') || {}).value || '',
+          (document.getElementById('urDateTo') || {}).value || ''
         );
       }
       if (btn.dataset.tab === 'repair') {
         loadRepairRecords(
-          document.getElementById('rpSearchInput')?.value || '',
-          document.getElementById('rpDateFrom')?.value || '',
-          document.getElementById('rpDateTo')?.value || ''
+          (document.getElementById('rpSearchInput') || {}).value || '',
+          (document.getElementById('rpDateFrom') || {}).value || '',
+          (document.getElementById('rpDateTo') || {}).value || ''
         );
       }
       if (btn.dataset.tab === 'calibration') {
@@ -295,7 +295,7 @@ function renderDetail(data) {
     in_use: '使用中', idle: '闲置', repairing: '维修中', scrapped: '已报废',
   };
   // 查找小组名称
-  const groupName = allGroups.find(g => g.id === data.group_id)?.name || '—';
+  const groupName = (allGroups.find(g => g.id === data.group_id) || {}).name || '—';
 
   const fields = [
     { label: '仪器名称', value: data.name },
@@ -383,7 +383,7 @@ async function saveInstrument() {
       closeDialog();
       loadInstruments(document.getElementById('searchInput').value);
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     console.error('保存仪器失败:', err);
@@ -403,7 +403,7 @@ function deleteInstrument(id, name) {
         overlay.remove();
         loadInstruments(document.getElementById('searchInput').value);
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除仪器失败:', err);
@@ -435,23 +435,23 @@ function esc(str) {
 
 // 供小组切换后刷新
 window.refreshPageData = async function () {
-  await loadInstruments(document.getElementById('searchInput')?.value || '');
+  await loadInstruments((document.getElementById('searchInput') || {}).value || '');
   // 如果当前在维护记录 Tab，也刷新维护列表
   const mtPanel = document.getElementById('panel-maintenance');
   if (mtPanel && mtPanel.classList.contains('active')) {
     await loadMaintenanceRecords(
-      document.getElementById('mtSearchInput')?.value || '',
-      document.getElementById('mtDateFrom')?.value || '',
-      document.getElementById('mtDateTo')?.value || ''
+      (document.getElementById('mtSearchInput') || {}).value || '',
+      (document.getElementById('mtDateFrom') || {}).value || '',
+      (document.getElementById('mtDateTo') || {}).value || ''
     );
   }
   // 如果当前在使用登记 Tab，也刷新使用登记列表
   const urPanel = document.getElementById('panel-usage');
   if (urPanel && urPanel.classList.contains('active')) {
     await loadUsageRecords(
-      document.getElementById('urSearchInput')?.value || '',
-      document.getElementById('urDateFrom')?.value || '',
-      document.getElementById('urDateTo')?.value || ''
+      (document.getElementById('urSearchInput') || {}).value || '',
+      (document.getElementById('urDateFrom') || {}).value || '',
+      (document.getElementById('urDateTo') || {}).value || ''
     );
   }
   // 如果当前在维修记录 Tab，也刷新维修列表
@@ -745,7 +745,7 @@ async function saveMaintenanceRecord() {
         document.getElementById('mtDateTo').value
       );
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     console.error('保存维护记录失败:', err);
@@ -766,7 +766,7 @@ function deleteMaintenanceRecord(id, desc) {
           document.getElementById('mtDateTo').value
         );
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除维护记录失败:', err);
@@ -1079,8 +1079,8 @@ function buildPrintWindow(records, dateFrom, dateTo) {
   </div>
   <div class="print-header">
     <h2>${esc(tpl.title)}</h2>
-    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
-    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    <div class="meta">小组: ${esc((group || {}).name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc((user || {}).display_name || (user || {}).username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
     ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
   </div>
   <table>
@@ -1408,11 +1408,11 @@ async function saveUsageRecord() {
     if (resp && resp.code === 200) {
       showToast(id ? '使用登记记录更新成功' : '使用登记记录添加成功');
       closeUsageDialog();
-      const urDateFrom = document.getElementById('urDateFrom')?.value || '';
-      const urDateTo = document.getElementById('urDateTo')?.value || '';
+      const urDateFrom = (document.getElementById('urDateFrom') || {}).value || '';
+      const urDateTo = (document.getElementById('urDateTo') || {}).value || '';
       loadUsageRecords(document.getElementById('urSearchInput').value, urDateFrom, urDateTo);
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     console.error('保存使用登记记录失败:', err);
@@ -1427,11 +1427,11 @@ function deleteUsageRecord(id, desc) {
       if (resp && resp.code === 200) {
         showToast('使用登记记录已删除');
         overlay.remove();
-        const urDateFrom = document.getElementById('urDateFrom')?.value || '';
-        const urDateTo = document.getElementById('urDateTo')?.value || '';
+        const urDateFrom = (document.getElementById('urDateFrom') || {}).value || '';
+        const urDateTo = (document.getElementById('urDateTo') || {}).value || '';
         loadUsageRecords(document.getElementById('urSearchInput').value, urDateFrom, urDateTo);
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除使用登记记录失败:', err);
@@ -1442,8 +1442,8 @@ function deleteUsageRecord(id, desc) {
 
 function doUsageSearch() {
   const term = document.getElementById('urSearchInput').value;
-  const dateFrom = document.getElementById('urDateFrom')?.value || '';
-  const dateTo = document.getElementById('urDateTo')?.value || '';
+  const dateFrom = (document.getElementById('urDateFrom') || {}).value || '';
+  const dateTo = (document.getElementById('urDateTo') || {}).value || '';
 
   if (dateFrom && dateTo && dateFrom > dateTo) {
     showToast('开始日期不能晚于结束日期', 'error');
@@ -1743,8 +1743,8 @@ function buildUsagePrintWindow(records, dateFrom, dateTo) {
   </div>
   <div class="print-header">
     <h2>${esc(tpl.title)}</h2>
-    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
-    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    <div class="meta">小组: ${esc((group || {}).name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc((user || {}).display_name || (user || {}).username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
     ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
   </div>
   <table>
@@ -2116,7 +2116,7 @@ async function saveRepairRecord() {
       closeRepairDialog();
       doRepairSearch();
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     console.error('保存维修记录失败:', err);
@@ -2133,7 +2133,7 @@ function deleteRepairRecord(id, desc) {
         overlay.remove();
         doRepairSearch();
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除维修记录失败:', err);
@@ -2443,8 +2443,8 @@ function buildRepairPrintWindow(records, dateFrom, dateTo) {
   </div>
   <div class="print-header">
     <h2>${esc(tpl.title)}</h2>
-    <div class="meta">小组: ${esc(group?.name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
-    <div class="meta">打印人: ${esc(user?.display_name || user?.username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
+    <div class="meta">小组: ${esc((group || {}).name || '—')} &nbsp;|&nbsp; 日期范围: ${dateRangeStr} &nbsp;|&nbsp; 记录数: ${records.length} 条</div>
+    <div class="meta">打印人: ${esc((user || {}).display_name || (user || {}).username || '—')} &nbsp;|&nbsp; 打印时间: ${now}</div>
     ${tpl.headerText ? `<div class="header-text">${esc(tpl.headerText)}</div>` : ''}
   </div>
   <table>
@@ -2886,7 +2886,7 @@ async function saveCalibrationRecord() {
       closeCalibrationDialog();
       loadCalibrationRecords(document.getElementById('cfSearchInput').value);
     } else {
-      showToast(resp?.message || '保存失败', 'error');
+      showToast((resp || {}).message || '保存失败', 'error');
     }
   } catch (err) {
     console.error('保存校准报告失败:', err);
@@ -2904,7 +2904,7 @@ function deleteCalibrationRecord(id, desc) {
         overlay.remove();
         loadCalibrationRecords(document.getElementById('cfSearchInput').value);
       } else {
-        showToast(resp?.message || '删除失败', 'error');
+        showToast((resp || {}).message || '删除失败', 'error');
       }
     } catch (err) {
       console.error('删除校准报告失败:', err);

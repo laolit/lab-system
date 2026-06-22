@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderUserInfo();
   document.getElementById('sidebarUserName').textContent =
-    (getUser()?.display_name || getUser()?.username || '—');
+    ((getUser() || {}).display_name || (getUser() || {}).username || '—');
 
   // 欢迎横幅
   renderWelcomeBanner();
@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================
 function renderWelcomeBanner() {
   const user = getUser();
-  const displayName = user?.display_name || user?.username || '管理员';
-  const groupName = getGroup()?.name || '—';
+  const displayName = (user || {}).display_name || (user || {}).username || '管理员';
+  const groupName = (getGroup() || {}).name || '—';
   const now = new Date();
   const hour = now.getHours();
 
