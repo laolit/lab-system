@@ -225,6 +225,18 @@
             </button>
           </div>
         </div>
+        <!-- 测试连接后显示的表列表 -->
+        <div id="srcTableListPanel" style="display:none;margin-top:12px;">
+          <div class="sql-guide-box">
+            <div class="sql-guide-header">
+              <i class="fa-solid fa-table-list"></i>
+              <strong>数据库表列表</strong>
+              <span id="srcTableCount" style="color:var(--text-secondary);font-weight:400;"></span>
+            </div>
+            <div id="srcTableList" class="src-table-list" style="max-height:200px;overflow-y:auto;font-size:13px;"></div>
+            <div class="sql-guide-note" style="margin-top:8px;">点击表名可复制到剪贴板</div>
+          </div>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closeSourceDialog()">取消</button>

@@ -286,6 +286,8 @@ async function openSourceDialog(id) {
   document.getElementById('editSrcUsername').value = '';
   document.getElementById('editSrcPassword').value = '';
   document.getElementById('editSrcActive').value = '1';
+  // 隐藏上次测试连接的表列表
+  document.getElementById('srcTableListPanel').style.display = 'none';
 
   if (id) {
     // 编辑模式 — 加载详情
@@ -380,11 +382,11 @@ async function deleteSource(id, name) {
 }
 
 async function testConnection() {
-  const server = document.getElementById('editSrcServer').value.trim();
-  const port = document.getElementById('editSrcPort').value;
-  const database_name = document.getElementById('editSrcDatabase').value.trim();
-  const username = document.getElementById('editSrcUsername').value.trim();
-  const password = document.getElementById('editSrcPassword').value;
+  var server = document.getElementById('editSrcServer').value.trim();
+  var port = document.getElementById('editSrcPort').value;
+  var database_name = document.getElementById('editSrcDatabase').value.trim();
+  var username = document.getElementById('editSrcUsername').value.trim();
+  var password = document.getElementById('editSrcPassword').value;
 
   if (!server || !database_name || !username || !password) {
     showToast('请先填写完整的连接信息', 'error');
@@ -392,18 +394,83 @@ async function testConnection() {
   }
 
   try {
-    const resp = await http.post('/monitor-config/sources/test', {
-      server, port: parseInt(port, 10) || 1433, database_name, username, password,
+    var resp = await http.post('/monitor-config/sources/test', {
+      server: server, port: parseInt(port, 10) || 1433, database_name: database_name, username: username, password: password,
     });
     if (resp && resp.code === 200) {
-      showToast(`连接成功（延迟 ${(resp.data || {}).latency_ms || '—'} ms）`, 'success');
+      var data = resp.data || {};
+      showToast('连接成功（延迟 ' + (data.latency_ms || '—') + ' ms）', 'success');
+      // 渲染表列表
+      renderSrcTableList(data.tables || []);
     } else {
       showToast((resp || {}).message || '连接失败', 'error');
+      document.getElementById('srcTableListPanel').style.display = 'none';
     }
   } catch (err) {
     console.error('测试连接失败:', err);
     showToast('测试连接请求失败', 'error');
+    document.getElementById('srcTableListPanel').style.display = 'none';
   }
+}
+
+function renderSrcTableList(tables) {
+  var panel = document.getElementById('srcTableListPanel');
+  var listEl = document.getElementById('srcTableList');
+  var countEl = document.getElementById('srcTableCount');
+
+  if (!panel || !listEl || !countEl) return;
+
+  if (tables.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  countEl.textContent = '（共 ' + tables.length + ' 张表）';
+  var html = '';
+  for (var i = 0; i < tables.length; i++) {
+    var t = tables[i];
+    var fullName = t.TABLE_SCHEMA + '.' + t.TABLE_NAME;
+    var schemaClass = t.TABLE_SCHEMA === 'dbo' ? ' src-table-schema' : '';
+    html += '<span class="src-table-item" onclick="copyTableName(\'' + escHtml(fullName).replace(/'/g, '&#39;') + '\')" title="点击复制: ' + escHtml(fullName) + '">'
+      + '<span class="' + schemaClass + '">' + escHtml(t.TABLE_SCHEMA) + '.</span>' + escHtml(t.TABLE_NAME)
+      + '</span>';
+  }
+  listEl.innerHTML = html;
+  panel.style.display = 'block';
+}
+
+function copyTableName(name) {
+  // 兼容旧浏览器：使用 textarea fallback
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(name).then(function () {
+        showToast('已复制: ' + name, 'success');
+      }, function () {
+        fallbackCopy(name);
+      });
+    } else {
+      fallbackCopy(name);
+    }
+  } catch (e) {
+    fallbackCopy(name);
+  }
+}
+
+function fallbackCopy(text) {
+  var textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.top = '-9999px';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    showToast('已复制: ' + text, 'success');
+  } catch (e) {
+    showToast('复制失败，请手动选择', 'error');
+  }
+  document.body.removeChild(textarea);
 }
 
 // ============================================

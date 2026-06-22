@@ -242,10 +242,22 @@ router.post('/sources/test', async (req, res) => {
     pool = await sql.connect(config);
     const latency = Date.now() - startTime;
 
+    // 查询数据库中可用的表列表
+    let tables = [];
+    try {
+      const tblResult = await pool.request().query(
+        "SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_SCHEMA, TABLE_NAME"
+      );
+      tables = tblResult.recordset || [];
+    } catch (tblErr) {
+      // 部分数据库可能没有 INFORMATION_SCHEMA 权限，静默忽略
+      console.warn('[Monitor-Config] 获取表列表失败:', tblErr.message);
+    }
+
     await pool.close();
     pool = null;
 
-    res.json({ code: 200, message: '连接成功', data: { latency_ms: latency } });
+    res.json({ code: 200, message: '连接成功', data: { latency_ms: latency, tables: tables } });
   } catch (err) {
     if (pool) {
       try { await pool.close(); } catch (e) { /* ignore */ }

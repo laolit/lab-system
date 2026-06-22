@@ -172,3 +172,25 @@
 .modal-body .btn-outline {
   margin-left: 0;
 }
+
+/* ---- 数据库表浏览列表 ---- */
+.src-table-item {
+  display: inline-block;
+  padding: 3px 10px;
+  margin: 2px 4px 2px 0;
+  background: #f5f5f4;
+  border: 1px solid #e7e5e4;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+  color: #1c1917;
+  transition: background 0.15s, border-color 0.15s;
+}
+.src-table-item:hover {
+  background: #e7e5e4;
+  border-color: #d6d3d1;
+}
+.src-table-schema {
+  color: #78716c;
+}
